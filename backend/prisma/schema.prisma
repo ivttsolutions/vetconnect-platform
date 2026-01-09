@@ -1,0 +1,1597 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserType {
+  USER        // Professional veterinary
+  COMPANY     // Company/Clinic
+  SHELTER     // Animal shelter (special treatment)
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  PENDING_VERIFICATION
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum PostType {
+  STANDARD
+  ARTICLE
+  CLINICAL_CASE
+  POLL
+  EVENT
+  ACHIEVEMENT
+}
+
+enum PostVisibility {
+  PUBLIC
+  CONNECTIONS
+  PRIVATE
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+  INTERNSHIP
+  VOLUNTEER
+}
+
+enum JobStatus {
+  ACTIVE
+  CLOSED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  APPLIED
+  VIEWED
+  SHORTLISTED
+  INTERVIEWING
+  OFFERED
+  REJECTED
+  WITHDRAWN
+  ACCEPTED
+}
+
+enum EventType {
+  WEBINAR
+  WORKSHOP
+  CONGRESS
+  OPEN_DAY
+  PRODUCT_LAUNCH
+  TRAINING
+  NETWORKING
+}
+
+enum EventMode {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum NotificationType {
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  POST_LIKE
+  POST_COMMENT
+  POST_SHARE
+  MENTION
+  MESSAGE
+  JOB_APPLICATION
+  EVENT_REMINDER
+  SYSTEM
+}
+
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  TRIALING
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum AnimalType {
+  DOG
+  CAT
+  BIRD
+  RABBIT
+  HORSE
+  EXOTIC
+  OTHER
+}
+
+enum AnimalStatus {
+  AVAILABLE
+  RESERVED
+  ADOPTED
+  FOSTERED
+}
+
+enum VolunteerType {
+  DOG_WALKING
+  FOSTER_HOME
+  EVENT_HELP
+  TRANSPORT
+  FACILITY_HELP
+  PROFESSIONAL
+}
+
+enum DonationType {
+  ONE_TIME
+  MONTHLY
+  ANNUAL
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE_CONTENT
+  FAKE_PROFILE
+  COPYRIGHT
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id                    String           @id @default(uuid())
+  email                 String           @unique
+  password              String
+  userType              UserType         @default(USER)
+  role                  UserRole         @default(USER)
+  status                AccountStatus    @default(PENDING_VERIFICATION)
+  emailVerified         Boolean          @default(false)
+  emailVerifiedAt       DateTime?
+  twoFactorEnabled      Boolean          @default(false)
+  twoFactorSecret       String?
+  
+  // Profile (polymorphic - either UserProfile or CompanyProfile)
+  userProfile           UserProfile?
+  companyProfile        CompanyProfile?
+  
+  // Connections & Network
+  sentConnections       Connection[]     @relation("SentConnections")
+  receivedConnections   Connection[]     @relation("ReceivedConnections")
+  followers             Follow[]         @relation("Following")
+  following             Follow[]         @relation("Followers")
+  
+  // Content
+  posts                 Post[]
+  comments              Comment[]
+  likes                 Like[]
+  
+  // Jobs
+  jobPosts              JobPost[]
+  jobApplications       JobApplication[]
+  savedJobs             SavedJob[]
+  jobAlerts             JobAlert[]
+  
+  // Events
+  events                Event[]
+  eventRegistrations    EventRegistration[]
+  
+  // Products
+  products              Product[]
+  
+  // Messaging
+  sentMessages          Message[]        @relation("SentMessages")
+  receivedMessages      Message[]        @relation("ReceivedMessages")
+  conversations         ConversationParticipant[]
+  
+  // Notifications
+  notifications         Notification[]
+  
+  // Subscription & Payments
+  subscription          Subscription?
+  payments              Payment[]
+  
+  // Shelter specific (only if userType = SHELTER)
+  animals               Animal[]
+  volunteerOpportunities VolunteerOpportunity[]
+  donations             Donation[]       @relation("ReceivedDonations")
+  donationsMade         Donation[]       @relation("MadeDonations")
+  
+  // Groups
+  ownedGroups           Group[]          @relation("GroupOwner")
+  groupMemberships      GroupMember[]
+  
+  // Reports
+  reportsMade           Report[]         @relation("Reporter")
+  reportsReceived       Report[]         @relation("Reported")
+  
+  // Activity tracking
+  lastLoginAt           DateTime?
+  lastActiveAt          DateTime?
+  loginCount            Int              @default(0)
+  
+  // Metadata
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+  
+  @@index([email])
+  @@index([userType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ============================================
+// PROFILES
+// ============================================
+
+model UserProfile {
+  id                    String           @id @default(uuid())
+  userId                String           @unique
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Personal Information
+  firstName             String
+  lastName              String
+  avatar                String?
+  coverPhoto            String?
+  headline              String?          // Professional title
+  bio                   String?
+  dateOfBirth           DateTime?
+  gender                Gender?
+  
+  // Professional Information
+  licenseNumber         String?          @unique // Número de colegiado
+  specialization        String[]
+  yearsOfExperience     Int?
+  
+  // Contact
+  phone                 String?
+  country               String?
+  city                  String?
+  address               String?
+  postalCode            String?
+  
+  // Social Links
+  website               String?
+  linkedIn              String?
+  twitter               String?
+  instagram             String?
+  
+  // Settings
+  showEmail             Boolean          @default(false)
+  showPhone             Boolean          @default(false)
+  searchableByLicense   Boolean          @default(true)
+  openToOpportunities   Boolean          @default(false)
+  
+  // Professional Details
+  experiences           Experience[]
+  educations            Education[]
+  certifications        Certification[]
+  skills                Skill[]
+  languages             Language[]
+  publications          Publication[]
+  
+  // Preferences
+  preferredLanguage     String           @default("en")
+  timezone              String           @default("UTC")
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userId])
+  @@index([licenseNumber])
+  @@map("user_profiles")
+}
+
+model CompanyProfile {
+  id                    String           @id @default(uuid())
+  userId                String           @unique
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Company Information
+  companyName           String
+  logo                  String?
+  coverPhoto            String?
+  description           String?
+  companyType           String           // clinic, hospital, laboratory, distributor, shelter
+  taxId                 String?          @unique // CIF/NIF
+  
+  // Contact
+  phone                 String?
+  email                 String?
+  website               String?
+  country               String?
+  city                  String?
+  address               String?
+  postalCode            String?
+  
+  // Company Details
+  foundedYear           Int?
+  employeeCount         String?          // "1-10", "11-50", etc.
+  services              String[]
+  certifications        String[]
+  coverageArea          String[]
+  
+  // Social Links
+  linkedIn              String?
+  twitter               String?
+  instagram             String?
+  facebook              String?
+  youtube               String?
+  
+  // Shelter specific fields
+  isShelter             Boolean          @default(false)
+  isVerifiedShelter     Boolean          @default(false)
+  shelterCapacity       Int?
+  shelterType           String?          // municipal, private, association
+  
+  // Gallery
+  gallery               String[]
+  
+  // Team
+  teamMembers           TeamMember[]
+  
+  // Settings
+  preferredLanguage     String           @default("en")
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userId])
+  @@index([taxId])
+  @@index([isShelter])
+  @@map("company_profiles")
+}
+
+// ============================================
+// PROFESSIONAL DETAILS
+// ============================================
+
+model Experience {
+  id                    String           @id @default(uuid())
+  userProfileId         String
+  userProfile           UserProfile      @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  
+  title                 String
+  companyName           String
+  location              String?
+  startDate             DateTime
+  endDate               DateTime?
+  current               Boolean          @default(false)
+  description           String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userProfileId])
+  @@map("experiences")
+}
+
+model Education {
+  id                    String           @id @default(uuid())
+  userProfileId         String
+  userProfile           UserProfile      @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  
+  institution           String
+  degree                String
+  fieldOfStudy          String?
+  startDate             DateTime
+  endDate               DateTime?
+  current               Boolean          @default(false)
+  description           String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userProfileId])
+  @@map("educations")
+}
+
+model Certification {
+  id                    String           @id @default(uuid())
+  userProfileId         String
+  userProfile           UserProfile      @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  issuer                String
+  issueDate             DateTime
+  expiryDate            DateTime?
+  credentialId          String?
+  credentialUrl         String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userProfileId])
+  @@map("certifications")
+}
+
+model Skill {
+  id                    String           @id @default(uuid())
+  userProfileId         String
+  userProfile           UserProfile      @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  endorsements          Int              @default(0)
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userProfileId])
+  @@map("skills")
+}
+
+model Language {
+  id                    String           @id @default(uuid())
+  userProfileId         String
+  userProfile           UserProfile      @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  
+  language              String
+  proficiency           String           // native, fluent, professional, basic
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userProfileId])
+  @@map("languages")
+}
+
+model Publication {
+  id                    String           @id @default(uuid())
+  userProfileId         String
+  userProfile           UserProfile      @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  
+  title                 String
+  publisher             String?
+  publicationDate       DateTime
+  url                   String?
+  description           String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userProfileId])
+  @@map("publications")
+}
+
+model TeamMember {
+  id                    String           @id @default(uuid())
+  companyProfileId      String
+  companyProfile        CompanyProfile   @relation(fields: [companyProfileId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  position              String
+  avatar                String?
+  bio                   String?
+  linkedUserId          String?          // If the team member has a user account
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([companyProfileId])
+  @@map("team_members")
+}
+
+// ============================================
+// CONNECTIONS & NETWORK
+// ============================================
+
+model Connection {
+  id                    String           @id @default(uuid())
+  senderId              String
+  sender                User             @relation("SentConnections", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId            String
+  receiver              User             @relation("ReceivedConnections", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  status                ConnectionStatus @default(PENDING)
+  message               String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+  @@map("connections")
+}
+
+model Follow {
+  id                    String           @id @default(uuid())
+  followerId            String
+  follower              User             @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId           String
+  following             User             @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime         @default(now())
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+// ============================================
+// POSTS & FEED
+// ============================================
+
+model Post {
+  id                    String           @id @default(uuid())
+  authorId              String
+  author                User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  type                  PostType         @default(STANDARD)
+  visibility            PostVisibility   @default(PUBLIC)
+  
+  content               String?
+  images                String[]
+  videos                String[]
+  documents             String[]
+  
+  // Article specific
+  articleTitle          String?
+  articleCover          String?
+  articleContent        String?          @db.Text
+  
+  // Clinical Case specific
+  caseTitle             String?
+  casePresentation      String?          @db.Text
+  caseDiagnosis         String?          @db.Text
+  caseTreatment         String?          @db.Text
+  caseEvolution         String?          @db.Text
+  
+  // Poll specific
+  pollQuestion          String?
+  pollOptions           String[]
+  pollEndDate           DateTime?
+  
+  // Event specific
+  eventId               String?
+  event                 Event?           @relation(fields: [eventId], references: [id])
+  
+  hashtags              String[]
+  mentions              String[]         // User IDs mentioned
+  
+  // Engagement
+  likes                 Like[]
+  comments              Comment[]
+  shares                Share[]
+  
+  // Stats (denormalized for performance)
+  likesCount            Int              @default(0)
+  commentsCount         Int              @default(0)
+  sharesCount           Int              @default(0)
+  viewsCount            Int              @default(0)
+  
+  // Moderation
+  isReported            Boolean          @default(false)
+  isHidden              Boolean          @default(false)
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+  
+  @@index([authorId])
+  @@index([type])
+  @@index([visibility])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+model Comment {
+  id                    String           @id @default(uuid())
+  postId                String
+  post                  Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId              String
+  author                User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  content               String
+  image                 String?
+  
+  // Nested comments
+  parentId              String?
+  parent                Comment?         @relation("CommentReplies", fields: [parentId], references: [id])
+  replies               Comment[]        @relation("CommentReplies")
+  
+  // Engagement
+  likes                 CommentLike[]
+  likesCount            Int              @default(0)
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  deletedAt             DateTime?
+  
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Like {
+  id                    String           @id @default(uuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId                String
+  post                  Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime         @default(now())
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("likes")
+}
+
+model CommentLike {
+  id                    String           @id @default(uuid())
+  userId                String
+  commentId             String
+  comment               Comment          @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  createdAt             DateTime         @default(now())
+  
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
+}
+
+model Share {
+  id                    String           @id @default(uuid())
+  userId                String
+  postId                String
+  post                  Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  comment               String?
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([postId])
+  @@map("shares")
+}
+
+model PollVote {
+  id                    String           @id @default(uuid())
+  userId                String
+  postId                String
+  optionIndex           Int
+  
+  createdAt             DateTime         @default(now())
+  
+  @@unique([userId, postId])
+  @@index([postId])
+  @@map("poll_votes")
+}
+
+// ============================================
+// JOBS & EMPLOYMENT
+// ============================================
+
+model JobPost {
+  id                    String           @id @default(uuid())
+  companyId             String
+  company               User             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  title                 String
+  description           String           @db.Text
+  requirements          String           @db.Text
+  responsibilities      String           @db.Text
+  benefits              String?          @db.Text
+  
+  jobType               JobType
+  status                JobStatus        @default(DRAFT)
+  
+  // Location
+  location              String
+  country               String?
+  city                  String?
+  remote                Boolean          @default(false)
+  
+  // Compensation
+  salaryMin             Int?
+  salaryMax             Int?
+  salaryCurrency        String           @default("USD")
+  showSalary            Boolean          @default(false)
+  
+  // Requirements
+  experienceYears       Int?
+  specialization        String[]
+  skills                String[]
+  educationLevel        String?
+  
+  // Application
+  applicationDeadline   DateTime?
+  externalUrl           String?
+  applicationEmail      String?
+  
+  // Engagement
+  applications          JobApplication[]
+  savedBy               SavedJob[]
+  
+  // Stats
+  viewsCount            Int              @default(0)
+  applicationsCount     Int              @default(0)
+  
+  // Sponsorship
+  isSponsored           Boolean          @default(false)
+  sponsoredUntil        DateTime?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  publishedAt           DateTime?
+  closedAt              DateTime?
+  
+  @@index([companyId])
+  @@index([status])
+  @@index([jobType])
+  @@index([location])
+  @@index([createdAt])
+  @@map("job_posts")
+}
+
+model JobApplication {
+  id                    String           @id @default(uuid())
+  jobId                 String
+  job                   JobPost          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicantId           String
+  applicant             User             @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  
+  status                ApplicationStatus @default(APPLIED)
+  
+  coverLetter           String?          @db.Text
+  resumeUrl             String?
+  answers               Json?            // Answers to screening questions
+  
+  // Company notes
+  companyNotes          String?
+  rating                Int?
+  
+  viewedAt              DateTime?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@unique([jobId, applicantId])
+  @@index([jobId])
+  @@index([applicantId])
+  @@index([status])
+  @@map("job_applications")
+}
+
+model SavedJob {
+  id                    String           @id @default(uuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId                 String
+  job                   JobPost          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  notes                 String?
+  
+  createdAt             DateTime         @default(now())
+  
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@map("saved_jobs")
+}
+
+model JobAlert {
+  id                    String           @id @default(uuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  keywords              String[]
+  location              String?
+  jobType               JobType?
+  remote                Boolean?
+  salaryMin             Int?
+  
+  frequency             String           @default("daily") // immediate, daily, weekly
+  isActive              Boolean          @default(true)
+  
+  lastSentAt            DateTime?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userId])
+  @@index([isActive])
+  @@map("job_alerts")
+}
+
+// ============================================
+// PRODUCTS & CATALOG
+// ============================================
+
+model Product {
+  id                    String           @id @default(uuid())
+  companyId             String
+  company               User             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  description           String           @db.Text
+  category              String
+  subcategory           String?
+  
+  images                String[]
+  videos                String[]
+  documents             String[]         // Technical sheets, manuals
+  
+  specifications        Json?
+  
+  // Pricing
+  price                 Decimal?         @db.Decimal(10, 2)
+  currency              String           @default("USD")
+  showPrice             Boolean          @default(true)
+  
+  availability          String           @default("available") // available, out_of_stock, on_request
+  
+  // SEO & Tags
+  tags                  String[]
+  certifications        String[]
+  
+  // Stats
+  viewsCount            Int              @default(0)
+  inquiriesCount        Int              @default(0)
+  
+  isActive              Boolean          @default(true)
+  isFeatured            Boolean          @default(false)
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([companyId])
+  @@index([category])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@map("products")
+}
+
+// ============================================
+// EVENTS
+// ============================================
+
+model Event {
+  id                    String           @id @default(uuid())
+  organizerId           String
+  organizer             User             @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  
+  type                  EventType
+  mode                  EventMode
+  status                EventStatus      @default(DRAFT)
+  
+  title                 String
+  description           String           @db.Text
+  coverImage            String?
+  
+  // Schedule
+  startDate             DateTime
+  endDate               DateTime
+  timezone              String           @default("UTC")
+  
+  // Location
+  location              String?
+  address               String?
+  city                  String?
+  country               String?
+  coordinates           String?          // lat,lng
+  onlineUrl             String?
+  
+  // Agenda
+  agenda                Json?
+  speakers              Json[]
+  sponsors              Json[]
+  
+  // Registration
+  isFree                Boolean          @default(true)
+  price                 Decimal?         @db.Decimal(10, 2)
+  currency              String           @default("USD")
+  maxAttendees          Int?
+  registrationDeadline  DateTime?
+  requiresApproval      Boolean          @default(false)
+  
+  customQuestions       Json[]           // Custom registration questions
+  
+  // Materials
+  materials             String[]
+  recordingUrl          String?
+  
+  // Engagement
+  registrations         EventRegistration[]
+  posts                 Post[]
+  
+  // Stats
+  viewsCount            Int              @default(0)
+  registrationsCount    Int              @default(0)
+  attendeesCount        Int              @default(0)
+  
+  // Sponsorship
+  isSponsored           Boolean          @default(false)
+  sponsoredUntil        DateTime?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  publishedAt           DateTime?
+  
+  @@index([organizerId])
+  @@index([status])
+  @@index([type])
+  @@index([mode])
+  @@index([startDate])
+  @@map("events")
+}
+
+model EventRegistration {
+  id                    String           @id @default(uuid())
+  eventId               String
+  event                 Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  status                String           @default("registered") // registered, approved, rejected, attended, cancelled
+  
+  answers               Json?            // Answers to custom questions
+  
+  attended              Boolean          @default(false)
+  checkInAt             DateTime?
+  
+  certificateUrl        String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@unique([eventId, userId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([status])
+  @@map("event_registrations")
+}
+
+// ============================================
+// MESSAGING
+// ============================================
+
+model Conversation {
+  id                    String           @id @default(uuid())
+  
+  title                 String?
+  isGroup               Boolean          @default(false)
+  
+  participants          ConversationParticipant[]
+  messages              Message[]
+  
+  lastMessageAt         DateTime?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id                    String           @id @default(uuid())
+  conversationId        String
+  conversation          Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  isAdmin               Boolean          @default(false)
+  isMuted               Boolean          @default(false)
+  
+  lastReadAt            DateTime?
+  joinedAt              DateTime         @default(now())
+  leftAt                DateTime?
+  
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id                    String           @id @default(uuid())
+  conversationId        String
+  conversation          Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  senderId              String
+  sender                User             @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  content               String?
+  attachments           String[]
+  
+  status                MessageStatus    @default(SENT)
+  
+  // Reply to message
+  replyToId             String?
+  
+  // Reactions
+  reactions             Json?            // {emoji: [userIds]}
+  
+  // Shared content
+  sharedPostId          String?
+  sharedJobId           String?
+  
+  readBy                String[]         // Array of user IDs who read the message
+  
+  isEdited              Boolean          @default(false)
+  editedAt              DateTime?
+  
+  deletedFor            String[]         // Array of user IDs who deleted this message
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id                    String           @id @default(uuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type                  NotificationType
+  
+  title                 String
+  message               String
+  
+  // Related entities
+  actorId               String?          // User who triggered the notification
+  postId                String?
+  commentId             String?
+  jobId                 String?
+  eventId               String?
+  messageId             String?
+  
+  actionUrl             String?
+  
+  isRead                Boolean          @default(false)
+  readAt                DateTime?
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================
+// GROUPS
+// ============================================
+
+model Group {
+  id                    String           @id @default(uuid())
+  ownerId               String
+  owner                 User             @relation("GroupOwner", fields: [ownerId], references: [id])
+  
+  name                  String
+  description           String?
+  avatar                String?
+  coverPhoto            String?
+  
+  type                  String           @default("public") // public, private
+  category              String?
+  tags                  String[]
+  
+  members               GroupMember[]
+  
+  membersCount          Int              @default(0)
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([ownerId])
+  @@index([type])
+  @@map("groups")
+}
+
+model GroupMember {
+  id                    String           @id @default(uuid())
+  groupId               String
+  group                 Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role                  String           @default("member") // admin, moderator, member
+  
+  joinedAt              DateTime         @default(now())
+  
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@map("group_members")
+}
+
+// ============================================
+// SUBSCRIPTIONS & PAYMENTS
+// ============================================
+
+model Subscription {
+  id                    String           @id @default(uuid())
+  userId                String           @unique
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  plan                  SubscriptionPlan
+  status                SubscriptionStatus
+  
+  stripeCustomerId      String?          @unique
+  stripeSubscriptionId  String?          @unique
+  
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean          @default(false)
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  cancelledAt           DateTime?
+  
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                    String           @id @default(uuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount                Decimal          @db.Decimal(10, 2)
+  currency              String           @default("USD")
+  
+  status                PaymentStatus
+  
+  type                  String           // subscription, donation, event, job_posting
+  description           String?
+  
+  stripePaymentIntentId String?          @unique
+  stripeInvoiceId       String?
+  
+  metadata              Json?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@map("payments")
+}
+
+// ============================================
+// SHELTER SPECIFIC - ANIMALS & ADOPTIONS
+// ============================================
+
+model Animal {
+  id                    String           @id @default(uuid())
+  shelterId             String
+  shelter               User             @relation(fields: [shelterId], references: [id], onDelete: Cascade)
+  
+  name                  String
+  type                  AnimalType
+  breed                 String?
+  age                   Int?             // in months
+  gender                String?
+  
+  photos                String[]
+  videos                String[]
+  
+  description           String           @db.Text
+  personality           String?
+  story                 String?          @db.Text
+  
+  // Health
+  healthStatus          String           @default("healthy")
+  vaccinated            Boolean          @default(false)
+  sterilized            Boolean          @default(false)
+  microchipped          Boolean          @default(false)
+  specialNeeds          String?
+  
+  // Adoption
+  status                AnimalStatus     @default(AVAILABLE)
+  adoptionRequirements  String?
+  
+  adoptionApplications  AdoptionApplication[]
+  
+  // Location
+  currentLocation       String?
+  
+  // Stats
+  viewsCount            Int              @default(0)
+  inquiriesCount        Int              @default(0)
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  adoptedAt             DateTime?
+  
+  @@index([shelterId])
+  @@index([type])
+  @@index([status])
+  @@map("animals")
+}
+
+model AdoptionApplication {
+  id                    String           @id @default(uuid())
+  animalId              String
+  animal                Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  applicantId           String
+  
+  status                String           @default("pending") // pending, approved, rejected, completed
+  
+  // Applicant information
+  fullName              String
+  email                 String
+  phone                 String
+  address               String
+  
+  // Questions
+  hasExperience         Boolean
+  hasOtherPets          Boolean
+  otherPetsDetails      String?
+  homeType              String           // house, apartment
+  hasYard               Boolean
+  workSchedule          String
+  reasonForAdoption     String           @db.Text
+  
+  answers               Json?            // Custom questions answers
+  
+  // Process
+  homeVisitCompleted    Boolean          @default(false)
+  homeVisitDate         DateTime?
+  homeVisitNotes        String?
+  
+  approvedAt            DateTime?
+  rejectedAt            DateTime?
+  completedAt           DateTime?
+  
+  notes                 String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([animalId])
+  @@index([status])
+  @@map("adoption_applications")
+}
+
+// ============================================
+// VOLUNTEER OPPORTUNITIES
+// ============================================
+
+model VolunteerOpportunity {
+  id                    String           @id @default(uuid())
+  shelterId             String
+  shelter               User             @relation(fields: [shelterId], references: [id], onDelete: Cascade)
+  
+  title                 String
+  description           String           @db.Text
+  type                  VolunteerType
+  
+  location              String?
+  remote                Boolean          @default(false)
+  
+  requirements          String?
+  timeCommitment        String?
+  schedule              String?
+  
+  isActive              Boolean          @default(true)
+  
+  applications          VolunteerApplication[]
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([shelterId])
+  @@index([type])
+  @@index([isActive])
+  @@map("volunteer_opportunities")
+}
+
+model VolunteerApplication {
+  id                    String           @id @default(uuid())
+  opportunityId         String
+  opportunity           VolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  
+  applicantName         String
+  applicantEmail        String
+  applicantPhone        String
+  
+  message               String?          @db.Text
+  availability          String?
+  
+  status                String           @default("pending") // pending, approved, rejected
+  
+  approvedAt            DateTime?
+  rejectedAt            DateTime?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([opportunityId])
+  @@index([status])
+  @@map("volunteer_applications")
+}
+
+// ============================================
+// DONATIONS
+// ============================================
+
+model Donation {
+  id                    String           @id @default(uuid())
+  shelterId             String
+  shelter               User             @relation("ReceivedDonations", fields: [shelterId], references: [id])
+  
+  donorId               String?
+  donor                 User?            @relation("MadeDonations", fields: [donorId], references: [id])
+  
+  amount                Decimal          @db.Decimal(10, 2)
+  currency              String           @default("USD")
+  
+  type                  DonationType
+  
+  // Anonymous donation
+  isAnonymous           Boolean          @default(false)
+  donorName             String?
+  donorEmail            String?
+  
+  message               String?
+  
+  // Campaign
+  campaignId            String?
+  campaignName          String?
+  
+  // Payment
+  stripePaymentIntentId String?          @unique
+  status                PaymentStatus
+  
+  // Certificate
+  certificateUrl        String?
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([shelterId])
+  @@index([donorId])
+  @@index([status])
+  @@index([type])
+  @@map("donations")
+}
+
+model DonationCampaign {
+  id                    String           @id @default(uuid())
+  shelterId             String
+  
+  title                 String
+  description           String           @db.Text
+  coverImage            String?
+  
+  goalAmount            Decimal          @db.Decimal(10, 2)
+  currentAmount         Decimal          @default(0) @db.Decimal(10, 2)
+  currency              String           @default("USD")
+  
+  startDate             DateTime
+  endDate               DateTime?
+  
+  isActive              Boolean          @default(true)
+  
+  needs                 Json[]           // Specific needs: food, medicine, equipment
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([shelterId])
+  @@index([isActive])
+  @@map("donation_campaigns")
+}
+
+// ============================================
+// REPORTS & MODERATION
+// ============================================
+
+model Report {
+  id                    String           @id @default(uuid())
+  reporterId            String
+  reporter              User             @relation("Reporter", fields: [reporterId], references: [id])
+  reportedId            String
+  reported              User             @relation("Reported", fields: [reportedId], references: [id])
+  
+  reason                ReportReason
+  status                ReportStatus     @default(PENDING)
+  
+  description           String?
+  
+  // Reported content
+  postId                String?
+  commentId             String?
+  messageId             String?
+  
+  // Moderation
+  reviewedBy            String?
+  reviewedAt            DateTime?
+  moderatorNotes        String?
+  
+  actionTaken           String?          // warning, content_removed, user_suspended, user_banned, dismissed
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([status])
+  @@map("reports")
+}
+
+// ============================================
+// ANALYTICS & TRACKING
+// ============================================
+
+model ProfileView {
+  id                    String           @id @default(uuid())
+  profileId             String           // User ID whose profile was viewed
+  viewerId              String?          // Can be null for anonymous views
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([profileId])
+  @@index([viewerId])
+  @@index([createdAt])
+  @@map("profile_views")
+}
+
+model SearchHistory {
+  id                    String           @id @default(uuid())
+  userId                String
+  
+  query                 String
+  filters               Json?
+  resultsCount          Int?
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@map("search_history")
+}
+
+// ============================================
+// SYSTEM & ADMIN
+// ============================================
+
+model AuditLog {
+  id                    String           @id @default(uuid())
+  userId                String?
+  
+  action                String
+  entity                String
+  entityId              String?
+  
+  changes               Json?
+  ipAddress             String?
+  userAgent             String?
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model RefreshToken {
+  id                    String           @id @default(uuid())
+  userId                String
+  token                 String           @unique
+  
+  expiresAt             DateTime
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model EmailVerification {
+  id                    String           @id @default(uuid())
+  userId                String
+  
+  token                 String           @unique
+  expiresAt             DateTime
+  
+  createdAt             DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([token])
+  @@map("email_verifications")
+}
+
+model PasswordReset {
+  id                    String           @id @default(uuid())
+  userId                String
+  
+  token                 String           @unique
+  expiresAt             DateTime
+  used                  Boolean          @default(false)
+  
+  createdAt             DateTime         @default(now())
+  usedAt                DateTime?
+  
+  @@index([userId])
+  @@index([token])
+  @@map("password_resets")
+}
