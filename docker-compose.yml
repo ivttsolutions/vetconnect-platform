@@ -160,9 +160,10 @@ services:
       CORS_ORIGINS: http://localhost:3000,http://localhost:80
       
     volumes:
-      - ./backend:/app
-      - /app/node_modules
       - backend_uploads:/app/uploads
+    # Volúmenes de código comentados para producción
+    # - ./backend:/app
+    # - /app/node_modules
     ports:
       - "4000:4000"
     networks:
@@ -195,9 +196,10 @@ services:
       NEXT_PUBLIC_SUPPORTED_LANGUAGES: en,es,de,fr,it,pt,nl,ca
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_your-stripe-publishable-key}
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+    # Volúmenes de código comentados para producción
+    # - ./frontend:/app
+    # - /app/node_modules
+    # - /app/.next
     ports:
       - "3000:3000"
     networks:
