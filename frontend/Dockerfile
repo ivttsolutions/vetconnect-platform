@@ -1,17 +1,18 @@
 FROM node:20-alpine
+
 WORKDIR /app
 
-# Copiar package.json
+# Copiar package.json primero
 COPY package*.json ./
 
 # Instalar dependencias
 RUN npm install
 
-# Copiar código
+# Copiar TODO el código del frontend
 COPY . .
 
 # Exponer puerto
 EXPOSE 3000
 
-# Comando de inicio
+# Comando
 CMD ["npm", "run", "dev"]
