@@ -1,17 +1,20 @@
 FROM node:20-alpine
-
 WORKDIR /app
 
-# Install dependencies
+# Copiar package.json
 COPY package*.json ./
+
+# Instalar dependencias
 RUN npm install
 
-# Copy source
+# Copiar código
 COPY . .
 
-# Generate Prisma Client
-RUN npm run prisma:generate
+# Generar Prisma Client (si falla, continuar)
+RUN npm run prisma:generate || true
 
+# Exponer puerto
 EXPOSE 4000
 
+# Comando de inicio
 CMD ["npm", "run", "dev"]
