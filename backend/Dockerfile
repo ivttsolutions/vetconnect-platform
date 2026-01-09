@@ -18,4 +18,4 @@ RUN npm run prisma:generate || echo "Prisma generate skipped"
 EXPOSE 4000
 
 # Comando
-CMD ["npm", "run", "dev"]
+CMD ["npx", "ts-node", "src/server.ts"]
