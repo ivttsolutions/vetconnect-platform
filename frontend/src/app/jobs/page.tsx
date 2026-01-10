@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { jobsApi } from '@/lib/jobs';
+import { Header } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -93,41 +94,13 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🐾</span>
-            <span className="text-xl font-bold text-purple-600">VetConnect</span>
-          </div>
-          <nav className="flex items-center space-x-4">
-            <button onClick={() => router.push('/feed')} className="text-gray-600 hover:text-purple-600">
-              Feed
-            </button>
-            <button onClick={() => router.push('/network')} className="text-gray-600 hover:text-purple-600">
-              Red
-            </button>
-            <button onClick={() => router.push('/jobs')} className="text-purple-600 font-medium">
-              💼 Empleos
-            </button>
-            <button onClick={() => router.push('/events')} className="text-gray-600 hover:text-purple-600">
-              📅
-            </button>
-            <button onClick={() => router.push('/messages')} className="text-gray-600 hover:text-purple-600">
-              ✉️
-            </button>
-            <button onClick={() => router.push('/profile')} className="text-gray-600 hover:text-purple-600">
-              Perfil
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Header */}
+        {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Empleos</h1>
+            <h1 className="text-2xl font-bold text-gray-900">💼 Empleos</h1>
             <p className="text-sm text-gray-500">Encuentra oportunidades en el sector veterinario</p>
           </div>
           {isAuthenticated && (
