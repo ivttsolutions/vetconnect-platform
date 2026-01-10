@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { searchApi } from '@/lib/search';
+import { Header } from '@/components/layout';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -98,32 +99,7 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🐾</span>
-            <span className="text-xl font-bold text-purple-600">VetConnect</span>
-          </div>
-          <nav className="flex items-center space-x-4">
-            <button onClick={() => router.push('/feed')} className="text-gray-600 hover:text-purple-600">
-              Feed
-            </button>
-            <button onClick={() => router.push('/network')} className="text-gray-600 hover:text-purple-600">
-              Red
-            </button>
-            <button onClick={() => router.push('/jobs')} className="text-gray-600 hover:text-purple-600">
-              💼
-            </button>
-            <button onClick={() => router.push('/events')} className="text-gray-600 hover:text-purple-600">
-              📅
-            </button>
-            <button onClick={() => router.push('/profile')} className="text-gray-600 hover:text-purple-600">
-              Perfil
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* Search Box */}
