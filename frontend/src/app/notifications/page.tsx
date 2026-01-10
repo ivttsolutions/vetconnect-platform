@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { notificationsApi } from '@/lib/notifications';
+import { Header } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -105,48 +106,19 @@ export default function NotificationsPage() {
     }
   };
 
-  const getActorName = (actor: Notification['actor']) => {
-    if (!actor) return '';
-    if (actor.companyProfile) return actor.companyProfile.companyName;
-    if (actor.userProfile) return `${actor.userProfile.firstName} ${actor.userProfile.lastName}`;
-    return '';
-  };
-
   const unreadCount = notifications.filter(n => !n.readAt).length;
 
   if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🐾</span>
-            <span className="text-xl font-bold text-purple-600">VetConnect</span>
-          </div>
-          <nav className="flex items-center space-x-4">
-            <button onClick={() => router.push('/feed')} className="text-gray-600 hover:text-purple-600">
-              Feed
-            </button>
-            <button onClick={() => router.push('/network')} className="text-gray-600 hover:text-purple-600">
-              Red
-            </button>
-            <button onClick={() => router.push('/notifications')} className="text-purple-600 font-medium">
-              🔔 Notificaciones
-            </button>
-            <button onClick={() => router.push('/profile')} className="text-gray-600 hover:text-purple-600">
-              Perfil
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Header */}
+        {/* Page Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notificaciones</h1>
+            <h1 className="text-2xl font-bold text-gray-900">🔔 Notificaciones</h1>
             {unreadCount > 0 && (
               <p className="text-sm text-gray-500">{unreadCount} sin leer</p>
             )}
