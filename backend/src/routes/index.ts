@@ -7,6 +7,7 @@ import connectionsRoutes from './connections.routes';
 import notificationsRoutes from './notifications.routes';
 import messagesRoutes from './messages.routes';
 import jobsRoutes from './jobs.routes';
+import eventsRoutes from './events.routes';
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use('/connections', connectionsRoutes);
 router.use('/notifications', notificationsRoutes);
 router.use('/messages', messagesRoutes);
 router.use('/jobs', jobsRoutes);
+router.use('/events', eventsRoutes);
 
 export default router;
