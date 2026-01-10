@@ -140,9 +140,14 @@ export default function EventsPage() {
             <p className="text-sm text-gray-500">Conferencias, talleres y formación veterinaria</p>
           </div>
           {isAuthenticated && (
-            <Button onClick={() => router.push('/events/my-events')} variant="outline">
-              Mis eventos
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => router.push('/events/my-events')} variant="outline">
+                Mis eventos
+              </Button>
+              <Button onClick={() => router.push('/events/create')} className="bg-purple-600 hover:bg-purple-700">
+                + Crear evento
+              </Button>
+            </div>
           )}
         </div>
 
