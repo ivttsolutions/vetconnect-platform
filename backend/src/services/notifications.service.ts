@@ -7,10 +7,12 @@ export class NotificationService {
     type: string;
     title: string;
     message: string;
-    link?: string;
+    actionUrl?: string;
     actorId?: string;
-    entityId?: string;
-    entityType?: string;
+    postId?: string;
+    commentId?: string;
+    jobId?: string;
+    eventId?: string;
   }) {
     return prisma.notification.create({
       data: {
@@ -18,18 +20,12 @@ export class NotificationService {
         type: data.type as any,
         title: data.title,
         message: data.message,
-        link: data.link,
+        actionUrl: data.actionUrl,
         actorId: data.actorId,
-        entityId: data.entityId,
-        entityType: data.entityType,
-      },
-      include: {
-        actor: {
-          include: {
-            userProfile: true,
-            companyProfile: true,
-          },
-        },
+        postId: data.postId,
+        commentId: data.commentId,
+        jobId: data.jobId,
+        eventId: data.eventId,
       },
     });
   }
@@ -49,17 +45,29 @@ export class NotificationService {
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
-      include: {
-        actor: {
-          include: {
-            userProfile: true,
-            companyProfile: true,
-          },
-        },
-      },
     });
 
-    return notifications;
+    // Enriquecer con datos del actor
+    const enrichedNotifications = await Promise.all(
+      notifications.map(async (notification) => {
+        let actor = null;
+        if (notification.actorId) {
+          actor = await prisma.user.findUnique({
+            where: { id: notification.actorId },
+            include: {
+              userProfile: true,
+              companyProfile: true,
+            },
+          });
+        }
+        return {
+          ...notification,
+          actor,
+        };
+      })
+    );
+
+    return enrichedNotifications;
   }
 
   // Contar no leídas
@@ -84,7 +92,7 @@ export class NotificationService {
 
     return prisma.notification.update({
       where: { id: notificationId },
-      data: { readAt: new Date() },
+      data: { readAt: new Date(), isRead: true },
     });
   }
 
@@ -95,7 +103,7 @@ export class NotificationService {
         userId,
         readAt: null,
       },
-      data: { readAt: new Date() },
+      data: { readAt: new Date(), isRead: true },
     });
 
     return { success: true };
@@ -134,9 +142,8 @@ export class NotificationService {
       type: 'CONNECTION_REQUEST',
       title: 'Nueva solicitud de conexión',
       message: `${senderName} quiere conectar contigo`,
-      link: '/network',
+      actionUrl: '/network',
       actorId: senderId,
-      entityType: 'connection',
     });
   }
 
@@ -155,14 +162,13 @@ export class NotificationService {
       type: 'CONNECTION_ACCEPTED',
       title: 'Conexión aceptada',
       message: `${accepterName} aceptó tu solicitud de conexión`,
-      link: `/profile/${accepterId}`,
+      actionUrl: `/profile/${accepterId}`,
       actorId: accepterId,
-      entityType: 'connection',
     });
   }
 
   async notifyPostLike(likerId: string, postAuthorId: string, postId: string) {
-    if (likerId === postAuthorId) return null; // No notificar al mismo usuario
+    if (likerId === postAuthorId) return null;
 
     const liker = await prisma.user.findUnique({
       where: { id: likerId },
@@ -178,14 +184,13 @@ export class NotificationService {
       type: 'POST_LIKE',
       title: 'Nuevo me gusta',
       message: `A ${likerName} le gustó tu publicación`,
-      link: `/posts/${postId}`,
+      actionUrl: `/posts/${postId}`,
       actorId: likerId,
-      entityId: postId,
-      entityType: 'post',
+      postId: postId,
     });
   }
 
-  async notifyPostComment(commenterId: string, postAuthorId: string, postId: string) {
+  async notifyPostComment(commenterId: string, postAuthorId: string, postId: string, commentId?: string) {
     if (commenterId === postAuthorId) return null;
 
     const commenter = await prisma.user.findUnique({
@@ -202,10 +207,10 @@ export class NotificationService {
       type: 'POST_COMMENT',
       title: 'Nuevo comentario',
       message: `${commenterName} comentó en tu publicación`,
-      link: `/posts/${postId}`,
+      actionUrl: `/posts/${postId}`,
       actorId: commenterId,
-      entityId: postId,
-      entityType: 'post',
+      postId: postId,
+      commentId: commentId,
     });
   }
 
@@ -221,13 +226,11 @@ export class NotificationService {
 
     return this.create({
       userId: receiverId,
-      type: 'NEW_MESSAGE',
+      type: 'MESSAGE',
       title: 'Nuevo mensaje',
       message: `${senderName} te envió un mensaje`,
-      link: `/messages/${conversationId}`,
+      actionUrl: `/messages/${conversationId}`,
       actorId: senderId,
-      entityId: conversationId,
-      entityType: 'conversation',
     });
   }
 }
