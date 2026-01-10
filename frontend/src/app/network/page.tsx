@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { connectionsApi } from '@/lib/connections';
+import { Header } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 
 interface User {
@@ -91,7 +92,6 @@ export default function NetworkPage() {
   const handleSendRequest = async (userId: string) => {
     try {
       await connectionsApi.sendRequest(userId);
-      // Actualizar estado local
       setSuggestions(suggestions.filter(s => s.id !== userId));
       setSearchResults(searchResults.map(u => 
         u.id === userId ? { ...u, connectionStatus: 'PENDING' } : u
@@ -104,7 +104,7 @@ export default function NetworkPage() {
   const handleAcceptRequest = async (connectionId: string) => {
     try {
       await connectionsApi.acceptRequest(connectionId);
-      loadData(); // Recargar datos
+      loadData();
     } catch (error) {
       console.error('Error accepting:', error);
     }
@@ -149,26 +149,7 @@ export default function NetworkPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🐾</span>
-            <span className="text-xl font-bold text-purple-600">VetConnect</span>
-          </div>
-          <nav className="flex items-center space-x-4">
-            <button onClick={() => router.push('/feed')} className="text-gray-600 hover:text-purple-600">
-              Feed
-            </button>
-            <button onClick={() => router.push('/network')} className="text-purple-600 font-medium">
-              Red
-            </button>
-            <button onClick={() => router.push('/profile')} className="text-gray-600 hover:text-purple-600">
-              Perfil
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-4xl mx-auto px-4 py-6">
         {/* Search Bar */}
@@ -236,7 +217,10 @@ export default function NetworkPage() {
                 ) : (
                   connections.map((conn) => (
                     <div key={conn.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
+                      <div 
+                        className="flex items-center space-x-4 cursor-pointer"
+                        onClick={() => router.push(`/profile/${conn.user.id}`)}
+                      >
                         <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center overflow-hidden">
                           {getUserAvatar(conn.user) ? (
                             <img src={getUserAvatar(conn.user)!} alt="" className="w-full h-full object-cover" />
@@ -245,13 +229,13 @@ export default function NetworkPage() {
                           )}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{getUserName(conn.user)}</h4>
+                          <h4 className="font-semibold text-gray-900 hover:text-purple-600">{getUserName(conn.user)}</h4>
                           <p className="text-sm text-gray-500">{getUserHeadline(conn.user)}</p>
                         </div>
                       </div>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => router.push(`/profile/${conn.user.id}`)}>
-                          Ver perfil
+                        <Button variant="outline" size="sm" onClick={() => router.push(`/messages?userId=${conn.user.id}`)}>
+                          ✉️ Mensaje
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleRemoveConnection(conn.id)} className="text-red-600 border-red-200 hover:bg-red-50">
                           Eliminar
@@ -276,12 +260,15 @@ export default function NetworkPage() {
                   pendingRequests.map((request) => (
                     <div key={request.id} className="bg-white rounded-xl shadow-sm p-4">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                        <div 
+                          className="flex items-center space-x-4 cursor-pointer"
+                          onClick={() => router.push(`/profile/${request.sender.id}`)}
+                        >
                           <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
                             <span className="text-purple-600 font-bold text-xl">{getUserName(request.sender)[0]}</span>
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-900">{getUserName(request.sender)}</h4>
+                            <h4 className="font-semibold text-gray-900 hover:text-purple-600">{getUserName(request.sender)}</h4>
                             <p className="text-sm text-gray-500">{getUserHeadline(request.sender)}</p>
                             {request.message && (
                               <p className="text-sm text-gray-600 mt-1 italic">"{request.message}"</p>
@@ -308,12 +295,15 @@ export default function NetworkPage() {
               <div className="space-y-4">
                 {searchResults.map((user) => (
                   <div key={user.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                    <div 
+                      className="flex items-center space-x-4 cursor-pointer"
+                      onClick={() => router.push(`/profile/${user.id}`)}
+                    >
                       <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
                         <span className="text-purple-600 font-bold text-xl">{getUserName(user)[0]}</span>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{getUserName(user)}</h4>
+                        <h4 className="font-semibold text-gray-900 hover:text-purple-600">{getUserName(user)}</h4>
                         <p className="text-sm text-gray-500">{getUserHeadline(user)}</p>
                       </div>
                     </div>
@@ -340,12 +330,15 @@ export default function NetworkPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {suggestions.map((user) => (
                     <div key={user.id} className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <div 
+                        className="flex items-center space-x-3 cursor-pointer"
+                        onClick={() => router.push(`/profile/${user.id}`)}
+                      >
                         <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                           <span className="text-purple-600 font-bold">{getUserName(user)[0]}</span>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 text-sm">{getUserName(user)}</h4>
+                          <h4 className="font-semibold text-gray-900 text-sm hover:text-purple-600">{getUserName(user)}</h4>
                           <p className="text-xs text-gray-500">{getUserHeadline(user)}</p>
                         </div>
                       </div>
