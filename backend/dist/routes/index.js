@@ -12,6 +12,7 @@ const connections_routes_1 = __importDefault(require("./connections.routes"));
 const notifications_routes_1 = __importDefault(require("./notifications.routes"));
 const messages_routes_1 = __importDefault(require("./messages.routes"));
 const jobs_routes_1 = __importDefault(require("./jobs.routes"));
+const events_routes_1 = __importDefault(require("./events.routes"));
 const router = (0, express_1.Router)();
 // Health check
 router.get('/health', (req, res) => {
@@ -30,5 +31,6 @@ router.use('/connections', connections_routes_1.default);
 router.use('/notifications', notifications_routes_1.default);
 router.use('/messages', messages_routes_1.default);
 router.use('/jobs', jobs_routes_1.default);
+router.use('/events', events_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map
