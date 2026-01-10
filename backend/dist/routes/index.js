@@ -9,6 +9,7 @@ const user_routes_1 = __importDefault(require("./user.routes"));
 const profile_routes_1 = __importDefault(require("./profile.routes"));
 const posts_routes_1 = __importDefault(require("./posts.routes"));
 const connections_routes_1 = __importDefault(require("./connections.routes"));
+const notifications_routes_1 = __importDefault(require("./notifications.routes"));
 const router = (0, express_1.Router)();
 // Health check
 router.get('/health', (req, res) => {
@@ -24,5 +25,6 @@ router.use('/users', user_routes_1.default);
 router.use('/profile', profile_routes_1.default);
 router.use('/posts', posts_routes_1.default);
 router.use('/connections', connections_routes_1.default);
+router.use('/notifications', notifications_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

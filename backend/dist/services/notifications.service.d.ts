@@ -1,0 +1,162 @@
+export declare class NotificationService {
+    create(data: {
+        userId: string;
+        type: string;
+        title: string;
+        message: string;
+        actionUrl?: string;
+        actorId?: string;
+        postId?: string;
+        commentId?: string;
+        jobId?: string;
+        eventId?: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+    getNotifications(userId: string, options?: {
+        limit?: number;
+        offset?: number;
+        unreadOnly?: boolean;
+    }): Promise<{
+        actor: any;
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }[]>;
+    getUnreadCount(userId: string): Promise<number>;
+    markAsRead(notificationId: string, userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+    markAllAsRead(userId: string): Promise<{
+        success: boolean;
+    }>;
+    delete(notificationId: string, userId: string): Promise<{
+        deleted: boolean;
+    }>;
+    notifyConnectionRequest(senderId: string, receiverId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+    notifyConnectionAccepted(accepterId: string, senderId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+    notifyPostLike(likerId: string, postAuthorId: string, postId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+    notifyPostComment(commenterId: string, postAuthorId: string, postId: string, commentId?: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+    notifyNewMessage(senderId: string, receiverId: string, conversationId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        userId: string;
+        title: string;
+        type: import(".prisma/client").$Enums.NotificationType;
+        eventId: string | null;
+        postId: string | null;
+        commentId: string | null;
+        actorId: string | null;
+        jobId: string | null;
+        messageId: string | null;
+        actionUrl: string | null;
+        isRead: boolean;
+        readAt: Date | null;
+    }>;
+}
+//# sourceMappingURL=notifications.service.d.ts.map
