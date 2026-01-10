@@ -1064,7 +1064,7 @@ model Message {
   senderId              String
   sender                User             @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
-  // Quién recibe el mensaje (Esta es la parte que faltaba para conectar con el modelo User)
+  // Quién recibe el mensaje
   receiverId            String
   receiver              User             @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 
@@ -1077,25 +1077,6 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
   @@index([receiverId])
-}
-  
-  // Shared content
-  sharedPostId          String?
-  sharedJobId           String?
-  
-  readBy                String[]         // Array of user IDs who read the message
-  
-  isEdited              Boolean          @default(false)
-  editedAt              DateTime?
-  
-  deletedFor            String[]         // Array of user IDs who deleted this message
-  
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-  
-  @@index([conversationId])
-  @@index([senderId])
-  @@index([createdAt])
   @@map("messages")
 }
 
