@@ -1,19 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from '../utils/jwt.util';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
 
-export interface AuthRequest extends Request<ParamsDictionary, any, any, ParsedQs> {
+// Simple type with any to avoid TypeScript issues
+export type AuthRequest = Request & {
   user?: JwtPayload;
-  file?: {
-    fieldname: string;
-    originalname: string;
-    encoding: string;
-    mimetype: string;
-    size: number;
-    buffer: Buffer;
-  };
-}
+  file?: any;
+};
 
 export type UserType = 
   | 'VET_PROFESSIONAL'
