@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_routes_1 = __importDefault(require("./auth.routes"));
 const user_routes_1 = __importDefault(require("./user.routes"));
+const profile_routes_1 = __importDefault(require("./profile.routes"));
 const router = (0, express_1.Router)();
 // Health check
 router.get('/health', (req, res) => {
@@ -15,8 +16,9 @@ router.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
-// API routes
+// Routes
 router.use('/auth', auth_routes_1.default);
 router.use('/users', user_routes_1.default);
+router.use('/profile', profile_routes_1.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map
