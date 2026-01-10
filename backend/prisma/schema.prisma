@@ -1059,20 +1059,25 @@ model Message {
   id                    String           @id @default(uuid())
   conversationId        String
   conversation          Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  
+
+  // Quién envía el mensaje
   senderId              String
   sender                User             @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  
-  content               String?
-  attachments           String[]
-  
-  status                MessageStatus    @default(SENT)
-  
-  // Reply to message
-  replyToId             String?
-  
-  // Reactions
-  reactions             Json?            // {emoji: [userIds]}
+
+  // Quién recibe el mensaje (Esta es la parte que faltaba para conectar con el modelo User)
+  receiverId            String
+  receiver              User             @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  content               String?          @db.Text
+  messageType           MessageType      @default(TEXT)
+  attachmentUrl         String?
+  isRead                Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([receiverId])
+}
   
   // Shared content
   sharedPostId          String?
