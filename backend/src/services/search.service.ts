@@ -22,7 +22,7 @@ export class SearchService {
     });
 
     // Buscar empleos
-    const jobs = await prisma.jobPosting.findMany({
+    const jobs = await prisma.jobPost.findMany({
       where: {
         status: 'ACTIVE',
         OR: [
