@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireRole = exports.optionalAuth = exports.authenticate = void 0;
+exports.requireRole = exports.optionalAuth = exports.authMiddleware = exports.authenticate = void 0;
 const jwt_util_1 = require("../utils/jwt.util");
 const authenticate = (req, res, next) => {
     return new Promise((resolve) => {
@@ -30,6 +30,8 @@ const authenticate = (req, res, next) => {
     });
 };
 exports.authenticate = authenticate;
+// Alias for authenticate
+exports.authMiddleware = exports.authenticate;
 const optionalAuth = (req, res, next) => {
     return new Promise((resolve) => {
         const authHeader = req.headers.authorization;
