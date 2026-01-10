@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { postsApi } from '@/lib/posts';
+import { Header } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -130,42 +131,14 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🐾</span>
-            <span className="text-xl font-bold text-purple-600">VetConnect</span>
-          </div>
-          <nav className="flex items-center space-x-4">
-            <button 
-              onClick={() => router.push('/feed')}
-              className="text-purple-600 font-medium"
-            >
-              Feed
-            </button>
-            <button 
-              onClick={() => router.push('/profile')}
-              className="text-gray-600 hover:text-purple-600"
-            >
-              Perfil
-            </button>
-            <button 
-              onClick={() => router.push('/dashboard')}
-              className="text-gray-600 hover:text-purple-600"
-            >
-              Dashboard
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 py-6">
         {/* Create Post */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <div className="flex space-x-3">
             <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-lg">
-              {user?.profile?.firstName?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+              {user?.firstName?.[0] || user?.companyName?.[0] || 'U'}
             </div>
             <div className="flex-1">
               <textarea
@@ -213,7 +186,10 @@ export default function FeedPage() {
               <article key={post.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
                 {/* Post Header */}
                 <div className="p-4 flex items-start space-x-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center overflow-hidden">
+                  <div 
+                    onClick={() => router.push(`/profile/${post.author.id}`)}
+                    className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center overflow-hidden cursor-pointer"
+                  >
                     {getAuthorAvatar(post) ? (
                       <img 
                         src={getAuthorAvatar(post)!} 
@@ -227,7 +203,12 @@ export default function FeedPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{getAuthorName(post)}</h4>
+                    <h4 
+                      onClick={() => router.push(`/profile/${post.author.id}`)}
+                      className="font-semibold text-gray-900 cursor-pointer hover:underline"
+                    >
+                      {getAuthorName(post)}
+                    </h4>
                     <p className="text-sm text-gray-500">{getAuthorHeadline(post)}</p>
                     <p className="text-xs text-gray-400">
                       {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: es })}
