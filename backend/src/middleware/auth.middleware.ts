@@ -36,6 +36,9 @@ export const authenticate = (
   });
 };
 
+// Alias for authenticate
+export const authMiddleware = authenticate;
+
 export const optionalAuth = (
   req: AuthRequest,
   res: Response,
