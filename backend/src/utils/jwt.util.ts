@@ -10,7 +10,7 @@ export const generateAccessToken = (payload: JwtPayload): string => {
   return jwt.sign(
     payload,
     process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
+    { expiresIn: '15m' }
   );
 };
 
@@ -18,7 +18,7 @@ export const generateRefreshToken = (payload: JwtPayload): string => {
   return jwt.sign(
     payload,
     process.env.JWT_REFRESH_SECRET || 'your-refresh-secret',
-    { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+    { expiresIn: '7d' }
   );
 };
 
