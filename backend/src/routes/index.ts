@@ -5,6 +5,7 @@ import profileRoutes from './profile.routes';
 import postsRoutes from './posts.routes';
 import connectionsRoutes from './connections.routes';
 import notificationsRoutes from './notifications.routes';
+import messagesRoutes from './messages.routes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/profile', profileRoutes);
 router.use('/posts', postsRoutes);
 router.use('/connections', connectionsRoutes);
 router.use('/notifications', notificationsRoutes);
+router.use('/messages', messagesRoutes);
 
 export default router;
