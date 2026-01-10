@@ -110,11 +110,11 @@ export default function JobsPage() {
             <button onClick={() => router.push('/jobs')} className="text-purple-600 font-medium">
               💼 Empleos
             </button>
+            <button onClick={() => router.push('/events')} className="text-gray-600 hover:text-purple-600">
+              📅
+            </button>
             <button onClick={() => router.push('/messages')} className="text-gray-600 hover:text-purple-600">
               ✉️
-            </button>
-            <button onClick={() => router.push('/notifications')} className="text-gray-600 hover:text-purple-600">
-              🔔
             </button>
             <button onClick={() => router.push('/profile')} className="text-gray-600 hover:text-purple-600">
               Perfil
@@ -131,9 +131,14 @@ export default function JobsPage() {
             <p className="text-sm text-gray-500">Encuentra oportunidades en el sector veterinario</p>
           </div>
           {isAuthenticated && (
-            <Button onClick={() => router.push('/jobs/my-applications')} variant="outline">
-              Mis aplicaciones
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => router.push('/jobs/my-applications')} variant="outline">
+                Mis aplicaciones
+              </Button>
+              <Button onClick={() => router.push('/jobs/create')} className="bg-purple-600 hover:bg-purple-700">
+                + Publicar empleo
+              </Button>
+            </div>
           )}
         </div>
 
