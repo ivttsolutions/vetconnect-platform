@@ -12,22 +12,20 @@ export class DashboardService {
       applicationsCount,
       savedJobsCount,
       eventsRegisteredCount,
-      unreadMessagesCount,
       unreadNotificationsCount,
-      profileViews,
     ] = await Promise.all([
       // Conexiones aceptadas
       prisma.connection.count({
         where: {
           OR: [
-            { requesterId: userId, status: 'ACCEPTED' },
-            { addresseeId: userId, status: 'ACCEPTED' },
+            { senderId: userId, status: 'ACCEPTED' },
+            { receiverId: userId, status: 'ACCEPTED' },
           ],
         },
       }),
       // Solicitudes pendientes recibidas
       prisma.connection.count({
-        where: { addresseeId: userId, status: 'PENDING' },
+        where: { receiverId: userId, status: 'PENDING' },
       }),
       // Posts publicados
       prisma.post.count({
@@ -53,26 +51,10 @@ export class DashboardService {
       prisma.eventRegistration.count({
         where: { userId, status: { not: 'cancelled' } },
       }),
-      // Mensajes no leídos
-      prisma.conversation.count({
-        where: {
-          participants: { some: { id: userId } },
-          messages: {
-            some: {
-              senderId: { not: userId },
-              createdAt: {
-                gt: prisma.conversation.fields.lastReadAt,
-              },
-            },
-          },
-        },
-      }),
       // Notificaciones no leídas
       prisma.notification.count({
-        where: { userId, read: false },
+        where: { userId, isRead: false },
       }),
-      // Vistas de perfil (últimos 30 días) - placeholder
-      Promise.resolve(0),
     ]);
 
     return {
@@ -84,9 +66,8 @@ export class DashboardService {
       applications: applicationsCount,
       savedJobs: savedJobsCount,
       eventsRegistered: eventsRegisteredCount,
-      unreadMessages: unreadMessagesCount,
+      unreadMessages: 0,
       unreadNotifications: unreadNotificationsCount,
-      profileViews,
     };
   }
 
@@ -102,40 +83,18 @@ export class DashboardService {
       totalRegistrations,
       connectionsCount,
     ] = await Promise.all([
-      // Total empleos publicados
-      prisma.jobPost.count({
-        where: { companyId },
-      }),
-      // Empleos activos
-      prisma.jobPost.count({
-        where: { companyId, status: 'ACTIVE' },
-      }),
-      // Total aplicaciones recibidas
-      prisma.jobApplication.count({
-        where: { job: { companyId } },
-      }),
-      // Aplicaciones pendientes
-      prisma.jobApplication.count({
-        where: { job: { companyId }, status: 'PENDING' },
-      }),
-      // Eventos organizados
-      prisma.event.count({
-        where: { organizerId: companyId },
-      }),
-      // Eventos próximos
-      prisma.event.count({
-        where: { organizerId: companyId, startDate: { gte: new Date() }, status: 'PUBLISHED' },
-      }),
-      // Total inscripciones a eventos
-      prisma.eventRegistration.count({
-        where: { event: { organizerId: companyId } },
-      }),
-      // Conexiones
+      prisma.jobPost.count({ where: { companyId } }),
+      prisma.jobPost.count({ where: { companyId, status: 'ACTIVE' } }),
+      prisma.jobApplication.count({ where: { job: { companyId } } }),
+      prisma.jobApplication.count({ where: { job: { companyId }, status: 'pending' } }),
+      prisma.event.count({ where: { organizerId: companyId } }),
+      prisma.event.count({ where: { organizerId: companyId, startDate: { gte: new Date() }, status: 'PUBLISHED' } }),
+      prisma.eventRegistration.count({ where: { event: { organizerId: companyId } } }),
       prisma.connection.count({
         where: {
           OR: [
-            { requesterId: companyId, status: 'ACCEPTED' },
-            { addresseeId: companyId, status: 'ACCEPTED' },
+            { senderId: companyId, status: 'ACCEPTED' },
+            { receiverId: companyId, status: 'ACCEPTED' },
           ],
         },
       }),
@@ -155,59 +114,22 @@ export class DashboardService {
 
   // Actividad reciente
   async getRecentActivity(userId: string, limit: number = 10) {
-    const [recentNotifications, recentMessages] = await Promise.all([
-      prisma.notification.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        include: {
-          actor: {
-            include: {
-              userProfile: true,
-              companyProfile: true,
-            },
-          },
-        },
-      }),
-      prisma.message.findMany({
-        where: {
-          conversation: {
-            participants: { some: { id: userId } },
-          },
-          senderId: { not: userId },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          sender: {
-            include: {
-              userProfile: true,
-              companyProfile: true,
-            },
-          },
-        },
-      }),
-    ]);
+    const recentNotifications = await prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
 
     return {
       notifications: recentNotifications.map(n => ({
         id: n.id,
         type: n.type,
         message: n.message,
-        read: n.read,
+        read: n.isRead,
         createdAt: n.createdAt,
-        actor: n.actor?.userProfile 
-          ? `${n.actor.userProfile.firstName} ${n.actor.userProfile.lastName}`
-          : n.actor?.companyProfile?.companyName || null,
+        actor: null,
       })),
-      messages: recentMessages.map(m => ({
-        id: m.id,
-        content: m.content.substring(0, 50) + (m.content.length > 50 ? '...' : ''),
-        createdAt: m.createdAt,
-        sender: m.sender?.userProfile 
-          ? `${m.sender.userProfile.firstName} ${m.sender.userProfile.lastName}`
-          : m.sender?.companyProfile?.companyName || 'Usuario',
-      })),
+      messages: [],
     };
   }
 
@@ -245,8 +167,8 @@ export class DashboardService {
           id: { not: userId },
           NOT: {
             OR: [
-              { sentConnections: { some: { addresseeId: userId } } },
-              { receivedConnections: { some: { requesterId: userId } } },
+              { sentConnections: { some: { receiverId: userId } } },
+              { receivedConnections: { some: { senderId: userId } } },
             ],
           },
         },
