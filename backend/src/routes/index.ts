@@ -10,6 +10,7 @@ import jobsRoutes from './jobs.routes';
 import eventsRoutes from './events.routes';
 import searchRoutes from './search.routes';
 import dashboardRoutes from './dashboard.routes';
+import adminRoutes from './admin.routes';
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use('/jobs', jobsRoutes);
 router.use('/events', eventsRoutes);
 router.use('/search', searchRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;
