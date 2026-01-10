@@ -86,7 +86,7 @@ export class DashboardService {
       prisma.jobPost.count({ where: { companyId } }),
       prisma.jobPost.count({ where: { companyId, status: 'ACTIVE' } }),
       prisma.jobApplication.count({ where: { job: { companyId } } }),
-      prisma.jobApplication.count({ where: { job: { companyId }, status: 'pending' } }),
+      prisma.jobApplication.count({ where: { job: { companyId }, status: 'PENDING' } }),
       prisma.event.count({ where: { organizerId: companyId } }),
       prisma.event.count({ where: { organizerId: companyId, startDate: { gte: new Date() }, status: 'PUBLISHED' } }),
       prisma.eventRegistration.count({ where: { event: { organizerId: companyId } } }),
