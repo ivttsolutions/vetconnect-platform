@@ -15,9 +15,31 @@ datasource db {
 // ============================================
 
 enum UserType {
-  USER        // Professional veterinary
-  COMPANY     // Company/Clinic
-  SHELTER     // Animal shelter (special treatment)
+  VET_PROFESSIONAL  // Veterinario profesional colegiado
+  VET_TECHNICIAN    // Técnico/Auxiliar veterinario
+  STUDENT           // Estudiante de veterinaria
+  PET_OWNER         // Propietario de mascotas
+  COMPANY           // Empresa (requiere CompanyType)
+  SHELTER           // Refugio/Protectora de animales
+  GENERAL           // Usuario general interesado en el sector
+}
+
+enum CompanyType {
+  CLINIC              // Clínica veterinaria
+  HOSPITAL            // Hospital veterinario
+  LABORATORY          // Laboratorio de análisis
+  PHARMACEUTICAL      // Farmacéutica veterinaria
+  SUPPLIER            // Proveedor/Distribuidor
+  VET_COLLEGE         // Colegio oficial de veterinarios
+  UNIVERSITY          // Universidad/Centro educativo
+  RESEARCH_CENTER     // Centro de investigación
+  PET_STORE           // Tienda de mascotas
+  GROOMING            // Peluquería canina/felina
+  INSURANCE           // Seguros de mascotas
+  NUTRITION           // Nutrición animal
+  RESCUE_ORGANIZATION // Organización de rescate
+  NGO                 // ONG/Asociación protectora
+  OTHER               // Otro tipo de empresa
 }
 
 enum UserRole {
@@ -217,7 +239,7 @@ model User {
   id                    String           @id @default(uuid())
   email                 String           @unique
   password              String
-  userType              UserType         @default(USER)
+  userType              UserType         @default(GENERAL)
   role                  UserRole         @default(USER)
   status                AccountStatus    @default(PENDING_VERIFICATION)
   emailVerified         Boolean          @default(false)
@@ -287,6 +309,9 @@ model User {
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
   deletedAt             DateTime?
+  
+  // Refresh tokens relation
+  refreshTokens         RefreshToken[]
   
   @@index([email])
   @@index([userType])
@@ -368,7 +393,7 @@ model CompanyProfile {
   logo                  String?
   coverPhoto            String?
   description           String?
-  companyType           String           // clinic, hospital, laboratory, distributor, shelter
+  companyType           CompanyType      // Tipo de empresa (obligatorio)
   taxId                 String?          @unique // CIF/NIF
   
   // Contact
@@ -415,6 +440,7 @@ model CompanyProfile {
   @@index([userId])
   @@index([taxId])
   @@index([isShelter])
+  @@index([companyType])
   @@map("company_profiles")
 }
 
@@ -1543,6 +1569,7 @@ model AuditLog {
 model RefreshToken {
   id                    String           @id @default(uuid())
   userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   token                 String           @unique
   
   expiresAt             DateTime
