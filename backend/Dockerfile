@@ -1,16 +1,17 @@
-FROM node:20-slim
+FROM node:20
 
-RUN apt-get update && apt-get install -y openssl procps && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 
-RUN npx prisma generate
-RUN npx tsc
+RUN npm install -g prisma
+RUN prisma generate
+RUN npm run build
 
 EXPOSE 4000
 
