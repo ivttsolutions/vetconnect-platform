@@ -1,9 +1,18 @@
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from '../utils/jwt.util';
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
 
-export interface AuthRequest extends Request {
+export interface AuthRequest extends Request<ParamsDictionary, any, any, ParsedQs> {
   user?: JwtPayload;
-  file?: Express.Multer.File;
+  file?: {
+    fieldname: string;
+    originalname: string;
+    encoding: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  };
 }
 
 export type UserType = 
