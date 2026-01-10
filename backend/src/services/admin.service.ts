@@ -118,7 +118,7 @@ export class AdminService {
     return prisma.user.update({
       where: { id: userId },
       data: { 
-        status: 'INACTIVE',
+        status: 'SUSPENDED' as any,
         deletedAt: new Date(),
       },
     });
