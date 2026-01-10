@@ -3,7 +3,6 @@ import prisma from '../config/prisma';
 export class SearchService {
   async searchAll(query: string, options: { limit?: number } = {}) {
     const limit = options.limit || 10;
-    const searchTerm = `%${query}%`;
 
     // Buscar usuarios
     const users = await prisma.user.findMany({
@@ -23,7 +22,7 @@ export class SearchService {
     });
 
     // Buscar empleos
-    const jobs = await prisma.job.findMany({
+    const jobs = await prisma.jobPosting.findMany({
       where: {
         status: 'ACTIVE',
         OR: [
@@ -83,14 +82,12 @@ export class SearchService {
     return {
       users: users.map(user => ({
         id: user.id,
-        type: user.accountType,
+        type: user.companyProfile ? 'COMPANY' : 'INDIVIDUAL',
         name: user.userProfile 
           ? `${user.userProfile.firstName} ${user.userProfile.lastName}`
           : user.companyProfile?.companyName || 'Usuario',
         headline: user.userProfile?.headline || user.companyProfile?.description,
         avatar: user.userProfile?.avatar || user.companyProfile?.logo,
-        userType: user.userProfile?.userType,
-        companyType: user.companyProfile?.companyType,
       })),
       jobs: jobs.map(job => ({
         id: job.id,
@@ -136,10 +133,6 @@ export class SearchService {
         { companyProfile: { companyName: { contains: query, mode: 'insensitive' } } },
       ],
     };
-
-    if (options.userType) {
-      where.userProfile = { ...where.userProfile, userType: options.userType };
-    }
 
     return prisma.user.findMany({
       where,
