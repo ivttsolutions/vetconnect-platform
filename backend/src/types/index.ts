@@ -5,12 +5,40 @@ export interface AuthRequest extends Request {
   user?: JwtPayload;
 }
 
+export type UserType = 
+  | 'VET_PROFESSIONAL'
+  | 'VET_TECHNICIAN'
+  | 'STUDENT'
+  | 'PET_OWNER'
+  | 'COMPANY'
+  | 'SHELTER'
+  | 'GENERAL';
+
+export type CompanyType =
+  | 'CLINIC'
+  | 'HOSPITAL'
+  | 'LABORATORY'
+  | 'PHARMACEUTICAL'
+  | 'SUPPLIER'
+  | 'VET_COLLEGE'
+  | 'UNIVERSITY'
+  | 'RESEARCH_CENTER'
+  | 'PET_STORE'
+  | 'GROOMING'
+  | 'INSURANCE'
+  | 'NUTRITION'
+  | 'RESCUE_ORGANIZATION'
+  | 'NGO'
+  | 'OTHER';
+
 export interface RegisterDto {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
-  userType: 'USER' | 'COMPANY' | 'SHELTER';
+  userType: UserType;
+  companyName?: string;
+  companyType?: CompanyType;
 }
 
 export interface LoginDto {

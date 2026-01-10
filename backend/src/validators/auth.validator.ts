@@ -1,5 +1,33 @@
 import { body } from 'express-validator';
 
+const validUserTypes = [
+  'VET_PROFESSIONAL',
+  'VET_TECHNICIAN', 
+  'STUDENT',
+  'PET_OWNER',
+  'COMPANY',
+  'SHELTER',
+  'GENERAL'
+];
+
+const validCompanyTypes = [
+  'CLINIC',
+  'HOSPITAL',
+  'LABORATORY',
+  'PHARMACEUTICAL',
+  'SUPPLIER',
+  'VET_COLLEGE',
+  'UNIVERSITY',
+  'RESEARCH_CENTER',
+  'PET_STORE',
+  'GROOMING',
+  'INSURANCE',
+  'NUTRITION',
+  'RESCUE_ORGANIZATION',
+  'NGO',
+  'OTHER'
+];
+
 export const registerValidator = [
   body('email')
     .isEmail()
@@ -23,8 +51,17 @@ export const registerValidator = [
     .isLength({ min: 2, max: 50 })
     .withMessage('Last name must be between 2 and 50 characters'),
   body('userType')
-    .isIn(['USER', 'COMPANY', 'SHELTER'])
-    .withMessage('User type must be USER, COMPANY, or SHELTER'),
+    .isIn(validUserTypes)
+    .withMessage(`User type must be one of: ${validUserTypes.join(', ')}`),
+  body('companyName')
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Company name must be between 2 and 100 characters'),
+  body('companyType')
+    .optional()
+    .isIn(validCompanyTypes)
+    .withMessage(`Company type must be one of: ${validCompanyTypes.join(', ')}`),
 ];
 
 export const loginValidator = [

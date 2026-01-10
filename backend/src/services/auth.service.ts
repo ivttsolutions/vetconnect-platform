@@ -17,19 +17,41 @@ export class AuthService {
     // Hash password
     const hashedPassword = await hashPassword(data.password);
 
+    // Determine if this is a company/shelter registration
+    const isCompanyOrShelter = data.userType === 'COMPANY' || data.userType === 'SHELTER';
+
     // Create user and profile in a transaction
     const user = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
           email: data.email,
           password: hashedPassword,
-          userType: data.userType,
+          userType: data.userType as any,
           status: 'PENDING_VERIFICATION',
         },
       });
 
-      // Create user profile (only for USER and SHELTER types)
-      if (data.userType === 'USER' || data.userType === 'SHELTER') {
+      // Create appropriate profile based on user type
+      if (isCompanyOrShelter) {
+        // Create company profile for COMPANY or SHELTER
+        await tx.companyProfile.create({
+          data: {
+            userId: newUser.id,
+            companyName: data.companyName || `${data.firstName} ${data.lastName}`,
+            companyType: (data.companyType as any) || 'OTHER',
+            isShelter: data.userType === 'SHELTER',
+          },
+        });
+        // Also create a user profile for the contact person
+        await tx.userProfile.create({
+          data: {
+            userId: newUser.id,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+        });
+      } else {
+        // Create user profile for individuals
         await tx.userProfile.create({
           data: {
             userId: newUser.id,
@@ -83,6 +105,7 @@ export class AuthService {
       where: { email: data.email },
       include: {
         userProfile: true,
+        companyProfile: true,
       },
     });
 
@@ -140,6 +163,7 @@ export class AuthService {
         role: user.role,
         status: user.status,
         profile: user.userProfile,
+        companyProfile: user.companyProfile,
       },
       accessToken,
       refreshToken,
