@@ -6,7 +6,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npx prisma generate
-RUN npx tsc
+RUN npm run build || npx tsc
 EXPOSE 4000
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "npx prisma generate && node dist/server.js"]
