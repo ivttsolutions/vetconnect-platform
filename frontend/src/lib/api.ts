@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.132:4000/api';
+// Determine API URL based on environment
+const getApiUrl = () => {
+  // In browser, use the current host
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    return `http://${host}:4000/api`;
+  }
+  // Server-side fallback
+  return process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.132:4000/api';
+};
+
+const API_URL = getApiUrl();
 
 export const api = axios.create({
   baseURL: API_URL,
