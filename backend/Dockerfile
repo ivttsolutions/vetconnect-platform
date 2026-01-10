@@ -1,11 +1,12 @@
-FROM node:20-alpine
+FROM node:20
 
-RUN apk add --no-cache openssl openssl-dev
+RUN apt-get update && apt-get install -y openssl
 
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npx prisma generate || echo "Prisma skipped"
+RUN npx prisma generate
+RUN npx tsc
 EXPOSE 4000
-CMD ["node", "--loader", "ts-node/esm", "src/server.ts"]
+CMD ["node", "dist/server.js"]
