@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y openssl
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
+RUN npm install -g typescript
 COPY . .
-RUN npm run build || npx tsc
+RUN /usr/local/bin/tsc
 EXPOSE 4000
 CMD ["sh", "-c", "npx prisma generate && node dist/server.js"]
