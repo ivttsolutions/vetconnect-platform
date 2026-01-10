@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { messagesApi } from '@/lib/messages';
+import { Header } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -115,7 +116,6 @@ export default function MessagesPage() {
       setMessages([...messages, response.data]);
       setNewMessage('');
       
-      // Actualizar último mensaje en la lista
       setConversations(conversations.map(c => 
         c.id === selectedConversation.id
           ? { ...c, lastMessage: { content: newMessage, createdAt: new Date().toISOString(), senderId: user?.id || '' } }
@@ -134,42 +134,11 @@ export default function MessagesPage() {
     return 'Usuario';
   };
 
-  const getSenderName = (msg: Message) => {
-    if (msg.sender?.companyProfile) return msg.sender.companyProfile.companyName;
-    if (msg.sender?.userProfile) return `${msg.sender.userProfile.firstName} ${msg.sender.userProfile.lastName}`;
-    return 'Usuario';
-  };
-
   if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🐾</span>
-            <span className="text-xl font-bold text-purple-600">VetConnect</span>
-          </div>
-          <nav className="flex items-center space-x-4">
-            <button onClick={() => router.push('/feed')} className="text-gray-600 hover:text-purple-600">
-              Feed
-            </button>
-            <button onClick={() => router.push('/network')} className="text-gray-600 hover:text-purple-600">
-              Red
-            </button>
-            <button onClick={() => router.push('/messages')} className="text-purple-600 font-medium">
-              ✉️ Mensajes
-            </button>
-            <button onClick={() => router.push('/notifications')} className="text-gray-600 hover:text-purple-600">
-              🔔
-            </button>
-            <button onClick={() => router.push('/profile')} className="text-gray-600 hover:text-purple-600">
-              Perfil
-            </button>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 140px)' }}>
@@ -177,7 +146,7 @@ export default function MessagesPage() {
             {/* Lista de conversaciones */}
             <div className="w-1/3 border-r border-gray-200 flex flex-col">
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Mensajes</h2>
+                <h2 className="text-lg font-semibold text-gray-900">✉️ Mensajes</h2>
               </div>
               
               <div className="flex-1 overflow-y-auto">
@@ -231,7 +200,10 @@ export default function MessagesPage() {
               {selectedConversation ? (
                 <>
                   {/* Header del chat */}
-                  <div className="p-4 border-b border-gray-200 flex items-center space-x-3">
+                  <div 
+                    className="p-4 border-b border-gray-200 flex items-center space-x-3 cursor-pointer hover:bg-gray-50"
+                    onClick={() => router.push(`/profile/${selectedConversation.otherUser?.id}`)}
+                  >
                     <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-semibold">
                       {getUserName(selectedConversation).charAt(0).toUpperCase()}
                     </div>
