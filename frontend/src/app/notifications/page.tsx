@@ -13,7 +13,7 @@ interface Notification {
   type: string;
   title: string;
   message: string;
-  link?: string;
+  actionUrl?: string;
   readAt?: string;
   createdAt: string;
   actor?: {
@@ -35,9 +35,9 @@ const notificationIcons: Record<string, string> = {
   CONNECTION_ACCEPTED: '🤝',
   POST_LIKE: '💜',
   POST_COMMENT: '💬',
-  NEW_MESSAGE: '✉️',
+  MESSAGE: '✉️',
   JOB_APPLICATION: '📄',
-  JOB_UPDATE: '💼',
+  EVENT_REMINDER: '📅',
   SYSTEM: '🔔',
 };
 
@@ -100,8 +100,8 @@ export default function NotificationsPage() {
     if (!notification.readAt) {
       await handleMarkAsRead(notification.id);
     }
-    if (notification.link) {
-      router.push(notification.link);
+    if (notification.actionUrl) {
+      router.push(notification.actionUrl);
     }
   };
 
