@@ -3,6 +3,7 @@ import authRoutes from './auth.routes';
 import userRoutes from './user.routes';
 import profileRoutes from './profile.routes';
 import postsRoutes from './posts.routes';
+import connectionsRoutes from './connections.routes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/profile', profileRoutes);
 router.use('/posts', postsRoutes);
+router.use('/connections', connectionsRoutes);
 
 export default router;
