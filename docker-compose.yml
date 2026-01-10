@@ -74,6 +74,7 @@ services:
   # MINIO CLIENT - Create initial buckets
   # ============================================
   minio-client:
+    restart: "no"
     image: minio/mc:latest
     container_name: vetconnect-minio-client
     depends_on:
