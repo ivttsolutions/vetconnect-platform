@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { authApi } from '@/lib/auth';
 import { useAuthStore } from '@/store/authStore';
-import type { RegisterData } from '@/types';
+import type { RegisterData, UserType, CompanyType } from '@/types';
+import { USER_TYPE_LABELS, COMPANY_TYPE_LABELS } from '@/types';
+
+type FormData = RegisterData & { confirmPassword: string };
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,11 +19,14 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<RegisterData & { confirmPassword: string }>();
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<FormData>();
 
   const password = watch('password');
+  const userType = watch('userType');
 
-  const onSubmit = async (data: RegisterData & { confirmPassword: string }) => {
+  const isCompanyOrShelter = userType === 'COMPANY' || userType === 'SHELTER';
+
+  const onSubmit = async (data: FormData) => {
     setIsLoading(true);
     setError('');
 
@@ -42,10 +48,10 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-500 via-purple-600 to-blue-500 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-          <p className="text-gray-600 mt-2">Join the VetConnect community</p>
+          <h1 className="text-3xl font-bold text-gray-900">Crear Cuenta</h1>
+          <p className="text-gray-600 mt-2">Únete a la comunidad VetConnect</p>
         </div>
 
         {error && (
@@ -55,23 +61,79 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* User Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Soy un...</label>
+            <select
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              {...register('userType', { required: 'Selecciona el tipo de cuenta' })}
+            >
+              <option value="">Selecciona una opción</option>
+              {(Object.keys(USER_TYPE_LABELS) as UserType[]).map((type) => (
+                <option key={type} value={type}>
+                  {USER_TYPE_LABELS[type]}
+                </option>
+              ))}
+            </select>
+            {errors.userType && (
+              <p className="mt-1 text-sm text-red-500">{errors.userType.message}</p>
+            )}
+          </div>
+
+          {/* Company Type - Only shown if COMPANY or SHELTER selected */}
+          {isCompanyOrShelter && (
+            <>
+              <Input
+                label={userType === 'SHELTER' ? 'Nombre del Refugio' : 'Nombre de la Empresa'}
+                placeholder={userType === 'SHELTER' ? 'Refugio Animales Felices' : 'Clínica Veterinaria XYZ'}
+                error={errors.companyName?.message}
+                {...register('companyName', {
+                  required: isCompanyOrShelter ? 'El nombre es obligatorio' : false,
+                })}
+              />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {userType === 'SHELTER' ? 'Tipo de Refugio' : 'Tipo de Empresa'}
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  {...register('companyType', {
+                    required: isCompanyOrShelter ? 'El tipo es obligatorio' : false,
+                  })}
+                >
+                  <option value="">Selecciona una opción</option>
+                  {(Object.keys(COMPANY_TYPE_LABELS) as CompanyType[]).map((type) => (
+                    <option key={type} value={type}>
+                      {COMPANY_TYPE_LABELS[type]}
+                    </option>
+                  ))}
+                </select>
+                {errors.companyType && (
+                  <p className="mt-1 text-sm text-red-500">{errors.companyType.message}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Personal Info - for all user types */}
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="First Name"
-              placeholder="John"
+              label={isCompanyOrShelter ? 'Nombre del Contacto' : 'Nombre'}
+              placeholder="Juan"
               error={errors.firstName?.message}
               {...register('firstName', {
-                required: 'First name is required',
-                minLength: { value: 2, message: 'Min 2 characters' },
+                required: 'El nombre es obligatorio',
+                minLength: { value: 2, message: 'Mínimo 2 caracteres' },
               })}
             />
             <Input
-              label="Last Name"
-              placeholder="Doe"
+              label={isCompanyOrShelter ? 'Apellido del Contacto' : 'Apellidos'}
+              placeholder="García"
               error={errors.lastName?.message}
               {...register('lastName', {
-                required: 'Last name is required',
-                minLength: { value: 2, message: 'Min 2 characters' },
+                required: 'El apellido es obligatorio',
+                minLength: { value: 2, message: 'Mínimo 2 caracteres' },
               })}
             />
           </div>
@@ -79,64 +141,71 @@ export default function RegisterPage() {
           <Input
             label="Email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="tu@email.com"
             error={errors.email?.message}
             {...register('email', {
-              required: 'Email is required',
+              required: 'El email es obligatorio',
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address',
+                message: 'Email no válido',
               },
             })}
           />
 
           <Input
-            label="Password"
+            label="Contraseña"
             type="password"
             placeholder="••••••••"
             error={errors.password?.message}
             {...register('password', {
-              required: 'Password is required',
-              minLength: { value: 8, message: 'Min 8 characters' },
+              required: 'La contraseña es obligatoria',
+              minLength: { value: 8, message: 'Mínimo 8 caracteres' },
               pattern: {
                 value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                message: 'Must include uppercase, lowercase and number',
+                message: 'Debe incluir mayúscula, minúscula y número',
               },
             })}
           />
 
           <Input
-            label="Confirm Password"
+            label="Confirmar Contraseña"
             type="password"
             placeholder="••••••••"
             error={errors.confirmPassword?.message}
             {...register('confirmPassword', {
-              required: 'Please confirm password',
-              validate: (value) => value === password || 'Passwords do not match',
+              required: 'Confirma tu contraseña',
+              validate: (value) => value === password || 'Las contraseñas no coinciden',
             })}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
-            <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              {...register('userType', { required: 'Please select user type' })}
-            >
-              <option value="USER">Veterinary Professional</option>
-              <option value="COMPANY">Company / Clinic</option>
-              <option value="SHELTER">Animal Shelter</option>
-            </select>
+          <div className="flex items-start">
+            <input
+              type="checkbox"
+              id="terms"
+              className="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              required
+            />
+            <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
+              Acepto los{' '}
+              <Link href="/terms" className="text-purple-600 hover:underline">
+                Términos y Condiciones
+              </Link>{' '}
+              y la{' '}
+              <Link href="/privacy" className="text-purple-600 hover:underline">
+                Política de Privacidad
+              </Link>
+            </label>
           </div>
 
           <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-            Create Account
+            Crear Cuenta
           </Button>
         </form>
 
         <p className="mt-6 text-center text-gray-600">
-          Already have an account?{' '}
+          ¿Ya tienes cuenta?{' '}
           <Link href="/login" className="text-purple-600 font-medium hover:underline">
-            Sign in
+            Iniciar Sesión
           </Link>
         </p>
       </div>

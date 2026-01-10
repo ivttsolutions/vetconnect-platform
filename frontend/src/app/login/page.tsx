@@ -31,7 +31,7 @@ export default function LoginPage() {
       );
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      setError(err.response?.data?.error || 'Error al iniciar sesión. Inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
@@ -41,8 +41,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-500 via-purple-600 to-blue-500 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600 mt-2">Sign in to your VetConnect account</p>
+          <h1 className="text-3xl font-bold text-gray-900">Bienvenido</h1>
+          <p className="text-gray-600 mt-2">Inicia sesión en tu cuenta VetConnect</p>
         </div>
 
         {error && (
@@ -55,46 +55,46 @@ export default function LoginPage() {
           <Input
             label="Email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="tu@email.com"
             error={errors.email?.message}
             {...register('email', {
-              required: 'Email is required',
+              required: 'El email es obligatorio',
               pattern: {
                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address',
+                message: 'Email no válido',
               },
             })}
           />
 
           <Input
-            label="Password"
+            label="Contraseña"
             type="password"
             placeholder="••••••••"
             error={errors.password?.message}
             {...register('password', {
-              required: 'Password is required',
+              required: 'La contraseña es obligatoria',
             })}
           />
 
           <div className="flex items-center justify-between">
             <label className="flex items-center">
               <input type="checkbox" className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" />
-              <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              <span className="ml-2 text-sm text-gray-600">Recordarme</span>
             </label>
             <Link href="/forgot-password" className="text-sm text-purple-600 hover:underline">
-              Forgot password?
+              ¿Olvidaste tu contraseña?
             </Link>
           </div>
 
           <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-            Sign In
+            Iniciar Sesión
           </Button>
         </form>
 
         <p className="mt-6 text-center text-gray-600">
-          Don't have an account?{' '}
+          ¿No tienes cuenta?{' '}
           <Link href="/register" className="text-purple-600 font-medium hover:underline">
-            Sign up
+            Regístrate
           </Link>
         </p>
       </div>
