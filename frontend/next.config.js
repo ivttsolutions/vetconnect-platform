@@ -1,15 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
-    domains: ['localhost', 'vetconnect.b-cdn.net'],
-  },
-  i18n: {
-    locales: ['en', 'es', 'de', 'fr', 'it', 'pt', 'nl', 'ca'],
-    defaultLocale: 'en',
+    domains: ['192.168.1.132', 'localhost'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://192.168.1.132:4000/api',
   },
 }
 
