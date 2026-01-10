@@ -3,6 +3,7 @@ import { JwtPayload } from '../utils/jwt.util';
 
 export interface AuthRequest extends Request {
   user?: JwtPayload;
+  file?: Express.Multer.File;
 }
 
 export type UserType = 
