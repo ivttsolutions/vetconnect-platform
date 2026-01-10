@@ -2,6 +2,16 @@ import minioClient, { BUCKETS } from '../config/minio';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
+// Type for multer file
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+}
+
 export class UploadService {
   private getFileExtension(filename: string): string {
     return path.extname(filename).toLowerCase();
@@ -14,7 +24,7 @@ export class UploadService {
 
   async uploadFile(
     bucket: string,
-    file: Express.Multer.File,
+    file: MulterFile,
     folder?: string
   ): Promise<string> {
     const fileName = this.generateFileName(file.originalname);
@@ -33,15 +43,15 @@ export class UploadService {
     return `${baseUrl}/${bucket}/${objectName}`;
   }
 
-  async uploadAvatar(file: Express.Multer.File, userId: string): Promise<string> {
+  async uploadAvatar(file: MulterFile, userId: string): Promise<string> {
     return this.uploadFile(BUCKETS.AVATARS, file, userId);
   }
 
-  async uploadCover(file: Express.Multer.File, userId: string): Promise<string> {
+  async uploadCover(file: MulterFile, userId: string): Promise<string> {
     return this.uploadFile(BUCKETS.COVERS, file, userId);
   }
 
-  async uploadPostMedia(file: Express.Multer.File, userId: string): Promise<string> {
+  async uploadPostMedia(file: MulterFile, userId: string): Promise<string> {
     return this.uploadFile(BUCKETS.POSTS, file, userId);
   }
 
