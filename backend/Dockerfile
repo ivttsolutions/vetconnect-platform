@@ -1,12 +1,25 @@
-FROM node:20
+FROM node:20-slim
 
-RUN apt-get update && apt-get install -y openssl
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    openssl \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Instalar dependencias
 COPY package*.json ./
-RUN npm install
-RUN npm install -g typescript
+RUN npm ci --only=production=false
+
+# Copiar código
 COPY . .
-RUN /usr/local/bin/tsc
+
+# Generar Prisma y compilar
+RUN npx prisma generate && \
+    npm run build
+
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma generate && node dist/server.js"]
+
+# Iniciar aplicación
+CMD ["node", "dist/server.js"]
