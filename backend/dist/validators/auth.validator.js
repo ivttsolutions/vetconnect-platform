@@ -2,6 +2,32 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshTokenValidator = exports.loginValidator = exports.registerValidator = void 0;
 const express_validator_1 = require("express-validator");
+const validUserTypes = [
+    'VET_PROFESSIONAL',
+    'VET_TECHNICIAN',
+    'STUDENT',
+    'PET_OWNER',
+    'COMPANY',
+    'SHELTER',
+    'GENERAL'
+];
+const validCompanyTypes = [
+    'CLINIC',
+    'HOSPITAL',
+    'LABORATORY',
+    'PHARMACEUTICAL',
+    'SUPPLIER',
+    'VET_COLLEGE',
+    'UNIVERSITY',
+    'RESEARCH_CENTER',
+    'PET_STORE',
+    'GROOMING',
+    'INSURANCE',
+    'NUTRITION',
+    'RESCUE_ORGANIZATION',
+    'NGO',
+    'OTHER'
+];
 exports.registerValidator = [
     (0, express_validator_1.body)('email')
         .isEmail()
@@ -25,8 +51,17 @@ exports.registerValidator = [
         .isLength({ min: 2, max: 50 })
         .withMessage('Last name must be between 2 and 50 characters'),
     (0, express_validator_1.body)('userType')
-        .isIn(['USER', 'COMPANY', 'SHELTER'])
-        .withMessage('User type must be USER, COMPANY, or SHELTER'),
+        .isIn(validUserTypes)
+        .withMessage(`User type must be one of: ${validUserTypes.join(', ')}`),
+    (0, express_validator_1.body)('companyName')
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 100 })
+        .withMessage('Company name must be between 2 and 100 characters'),
+    (0, express_validator_1.body)('companyType')
+        .optional()
+        .isIn(validCompanyTypes)
+        .withMessage(`Company type must be one of: ${validCompanyTypes.join(', ')}`),
 ];
 exports.loginValidator = [
     (0, express_validator_1.body)('email')

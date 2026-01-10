@@ -19,6 +19,7 @@ export declare class AuthService {
             role: any;
             status: any;
             profile: any;
+            companyProfile: any;
         };
         accessToken: string;
         refreshToken: string;

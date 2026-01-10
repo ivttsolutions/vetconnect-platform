@@ -18,6 +18,8 @@ class AuthService {
         }
         // Hash password
         const hashedPassword = await (0, password_util_1.hashPassword)(data.password);
+        // Determine if this is a company/shelter registration
+        const isCompanyOrShelter = data.userType === 'COMPANY' || data.userType === 'SHELTER';
         // Create user and profile in a transaction
         const user = await prisma_1.default.$transaction(async (tx) => {
             const newUser = await tx.user.create({
@@ -28,8 +30,28 @@ class AuthService {
                     status: 'PENDING_VERIFICATION',
                 },
             });
-            // Create user profile (only for USER and SHELTER types)
-            if (data.userType === 'USER' || data.userType === 'SHELTER') {
+            // Create appropriate profile based on user type
+            if (isCompanyOrShelter) {
+                // Create company profile for COMPANY or SHELTER
+                await tx.companyProfile.create({
+                    data: {
+                        userId: newUser.id,
+                        companyName: data.companyName || `${data.firstName} ${data.lastName}`,
+                        companyType: data.companyType || 'OTHER',
+                        isShelter: data.userType === 'SHELTER',
+                    },
+                });
+                // Also create a user profile for the contact person
+                await tx.userProfile.create({
+                    data: {
+                        userId: newUser.id,
+                        firstName: data.firstName,
+                        lastName: data.lastName,
+                    },
+                });
+            }
+            else {
+                // Create user profile for individuals
                 await tx.userProfile.create({
                     data: {
                         userId: newUser.id,
@@ -77,6 +99,7 @@ class AuthService {
             where: { email: data.email },
             include: {
                 userProfile: true,
+                companyProfile: true,
             },
         });
         if (!user) {
@@ -126,6 +149,7 @@ class AuthService {
                 role: user.role,
                 status: user.status,
                 profile: user.userProfile,
+                companyProfile: user.companyProfile,
             },
             accessToken,
             refreshToken,
