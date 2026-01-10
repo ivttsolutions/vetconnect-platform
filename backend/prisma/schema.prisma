@@ -1069,13 +1069,8 @@ model Message {
   conversationId        String
   conversation          Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  // Quién envía el mensaje
   senderId              String
   sender                User             @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-
-  // Quién recibe el mensaje
-  receiverId            String
-  receiver              User             @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 
   content               String?          @db.Text
   messageType           MessageType      @default(TEXT)
@@ -1085,7 +1080,6 @@ model Message {
 
   @@index([conversationId])
   @@index([senderId])
-  @@index([receiverId])
   @@map("messages")
 }
 
