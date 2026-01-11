@@ -100,4 +100,21 @@ export class MessagesController {
       sendError(res, error.message, 400);
     }
   }
+
+  async getOrCreateConversation(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const { userId: otherUserId } = req.body;
+      
+      if (!otherUserId) {
+        sendError(res, 'Se requiere el ID del usuario', 400);
+        return;
+      }
+      
+      const conversation = await messagesService.getOrCreateConversation(userId, otherUserId);
+      sendSuccess(res, conversation, 'Conversación obtenida');
+    } catch (error: any) {
+      sendError(res, error.message, 400);
+    }
+  }
 }

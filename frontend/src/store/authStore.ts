@@ -7,10 +7,10 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  isHydrated: boolean;
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
-  setLoading: (loading: boolean) => void;
+  setHydrated: (hydrated: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,7 +20,7 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      isLoading: true,
+      isHydrated: false,
 
       setAuth: (user, accessToken, refreshToken) => {
         if (typeof window !== 'undefined') {
@@ -32,7 +32,6 @@ export const useAuthStore = create<AuthState>()(
           accessToken,
           refreshToken,
           isAuthenticated: true,
-          isLoading: false,
         });
       },
 
@@ -46,11 +45,10 @@ export const useAuthStore = create<AuthState>()(
           accessToken: null,
           refreshToken: null,
           isAuthenticated: false,
-          isLoading: false,
         });
       },
 
-      setLoading: (loading) => set({ isLoading: loading }),
+      setHydrated: (hydrated) => set({ isHydrated: hydrated }),
     }),
     {
       name: 'auth-storage',
@@ -60,6 +58,12 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Called when zustand finishes loading from localStorage
+        if (state) {
+          state.setHydrated(true);
+        }
+      },
     }
   )
 );

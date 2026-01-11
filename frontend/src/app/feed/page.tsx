@@ -37,19 +37,21 @@ interface Post {
 
 export default function FeedPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isHydrated } = useAuthStore();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadFeed();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isHydrated, router]);
 
   const loadFeed = async () => {
     try {

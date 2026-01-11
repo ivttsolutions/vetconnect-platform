@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { eventsApi } from '@/lib/events';
@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 
 export default function CreateEventPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     title: '',
@@ -32,6 +32,14 @@ export default function CreateEventPage() {
     registrationDeadline: '',
     requiresApproval: false,
   });
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isHydrated, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;

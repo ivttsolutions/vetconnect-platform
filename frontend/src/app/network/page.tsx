@@ -39,7 +39,7 @@ interface PendingRequest {
 
 export default function NetworkPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'connections' | 'pending' | 'search'>('connections');
   const [connections, setConnections] = useState<Connection[]>([]);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
@@ -50,12 +50,14 @@ export default function NetworkPage() {
   const [searching, setSearching] = useState(false);
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadData();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isHydrated, router]);
 
   const loadData = async () => {
     try {

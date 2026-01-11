@@ -62,28 +62,22 @@ interface Recommendations {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, user, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated, user, isHydrated } = useAuthStore();
   const [stats, setStats] = useState<Stats | null>(null);
   const [activity, setActivity] = useState<Activity | null>(null);
   const [recommendations, setRecommendations] = useState<Recommendations | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hydrated, setHydrated] = useState(false);
-
-  // Wait for zustand hydration
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
 
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!hydrated) return;
+    // Wait for zustand to finish loading from localStorage
+    if (!isHydrated) return;
     
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadDashboard();
-  }, [isAuthenticated, hydrated]);
+  }, [isAuthenticated, isHydrated, router]);
 
   const loadDashboard = async () => {
     try {

@@ -10,17 +10,19 @@ import { USER_TYPE_LABELS } from '@/types';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isHydrated } = useAuthStore();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadProfile();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isHydrated, router]);
 
   const loadProfile = async () => {
     try {

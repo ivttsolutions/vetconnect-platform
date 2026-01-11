@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,12 +22,14 @@ export default function EditProfilePage() {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadProfile();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isHydrated, router]);
 
   const loadProfile = async () => {
     try {

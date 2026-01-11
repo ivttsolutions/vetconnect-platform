@@ -1,6 +1,11 @@
 import api from './api';
 
 export const messagesApi = {
+  // Obtener o crear conversación con un usuario
+  getOrCreateConversation: async (userId: string) => {
+    const response = await api.post('/messages/conversation', { userId });
+    return response.data;
+  },
   // Obtener conversaciones
   getConversations: async (limit = 20, offset = 0) => {
     const response = await api.get(`/messages?limit=${limit}&offset=${offset}`);

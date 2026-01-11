@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { messagesApi } from '@/lib/messages';
 import { Header } from '@/components/layout';
@@ -56,22 +56,78 @@ interface Message {
 
 export default function MessagesPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, user, isHydrated } = useAuthStore();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Obtener userId de la URL
+  const targetUserId = searchParams.get('userId');
+
   useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadConversations();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isHydrated, router]);
+
+  // Procesar userId de la URL después de cargar conversaciones
+  useEffect(() => {
+    if (!targetUserId || loading || !isAuthenticated) return;
+    
+    handleOpenConversationWithUser(targetUserId);
+  }, [targetUserId, loading, isAuthenticated]);
+
+  // Función para abrir/crear conversación con un usuario específico
+  const handleOpenConversationWithUser = async (userId: string) => {
+    setLoadingChat(true);
+    try {
+      // Buscar si ya existe en las conversaciones cargadas
+      const existingConv = conversations.find(c => c.otherUser?.id === userId);
+      
+      if (existingConv) {
+        setSelectedConversation(existingConv);
+      } else {
+        // Crear o obtener conversación del backend
+        const response = await messagesApi.getOrCreateConversation(userId);
+        const newConv = response.data;
+        
+        // Transformar la respuesta para el formato esperado
+        const otherParticipant = newConv.participants?.find((p: any) => p.userId !== user?.id);
+        const formattedConv: Conversation = {
+          id: newConv.id,
+          isGroup: newConv.isGroup,
+          title: newConv.title,
+          otherUser: otherParticipant?.user || null,
+          unreadCount: 0,
+          lastMessageAt: newConv.lastMessageAt,
+        };
+        
+        // Agregar a la lista si es nueva
+        if (!conversations.find(c => c.id === formattedConv.id)) {
+          setConversations([formattedConv, ...conversations]);
+        }
+        
+        setSelectedConversation(formattedConv);
+      }
+      
+      // Limpiar el parámetro de la URL
+      router.replace('/messages', { scroll: false });
+    } catch (error) {
+      console.error('Error opening conversation:', error);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedConversation) {

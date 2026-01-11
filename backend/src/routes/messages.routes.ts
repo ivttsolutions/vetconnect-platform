@@ -11,6 +11,7 @@ router.use(authMiddleware);
 // Conversaciones
 router.get('/', (req, res) => messagesController.getConversations(req, res));
 router.post('/start', (req, res) => messagesController.startConversation(req, res));
+router.post('/conversation', (req, res) => messagesController.getOrCreateConversation(req, res));
 router.get('/unread/count', (req, res) => messagesController.getUnreadCount(req, res));
 
 // Mensajes de una conversación

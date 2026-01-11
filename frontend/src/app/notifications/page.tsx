@@ -44,18 +44,20 @@ const notificationIcons: Record<string, string> = {
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
     loadNotifications();
-  }, [isAuthenticated, router, filter]);
+  }, [isAuthenticated, isHydrated, router, filter]);
 
   const loadNotifications = async () => {
     try {
