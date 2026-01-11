@@ -1,17 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require authentication
-const protectedRoutes = ['/dashboard', '/profile', '/settings', '/messages'];
-
 // Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Check for auth token in cookies (set by client-side)
-  // Note: For better security, implement server-side token validation
+  // Check for auth token in cookies (set by zustand persist)
   const token = request.cookies.get('auth-storage')?.value;
   let isAuthenticated = false;
   
@@ -24,12 +20,8 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect to login if accessing protected route without auth
-  if (protectedRoutes.some(route => pathname.startsWith(route)) && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Redirect to dashboard if accessing auth routes while authenticated
+  // Only redirect authenticated users away from auth pages
+  // Protected routes are handled client-side to avoid localStorage/cookie mismatch
   if (authRoutes.includes(pathname) && isAuthenticated) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
@@ -39,10 +31,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/profile/:path*',
-    '/settings/:path*',
-    '/messages/:path*',
     '/login',
     '/register',
   ],
