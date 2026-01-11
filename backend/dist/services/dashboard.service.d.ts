@@ -1,57 +1,34 @@
 export declare class DashboardService {
     getUserStats(userId: string): Promise<{
-        connections: number;
-        pendingRequests: number;
-        posts: number;
-        totalLikes: number;
-        totalComments: number;
-        applications: number;
-        savedJobs: number;
-        eventsRegistered: number;
+        connections: any;
+        pendingRequests: any;
+        posts: any;
+        totalLikes: any;
+        totalComments: any;
+        applications: any;
+        savedJobs: any;
+        eventsRegistered: any;
         unreadMessages: number;
-        unreadNotifications: number;
+        unreadNotifications: any;
     }>;
     getCompanyStats(companyId: string): Promise<{
-        jobsPosted: number;
-        activeJobs: number;
-        totalApplications: number;
+        jobsPosted: any;
+        activeJobs: any;
+        totalApplications: any;
         pendingApplications: number;
-        eventsOrganized: number;
-        upcomingEvents: number;
-        totalRegistrations: number;
-        connections: number;
+        eventsOrganized: any;
+        upcomingEvents: any;
+        totalRegistrations: any;
+        connections: any;
     }>;
     getRecentActivity(userId: string, limit?: number): Promise<{
-        notifications: {
-            id: string;
-            type: import(".prisma/client").$Enums.NotificationType;
-            message: string;
-            read: boolean;
-            createdAt: Date;
-            actor: any;
-        }[];
+        notifications: any;
         messages: any[];
     }>;
     getRecommendations(userId: string): Promise<{
-        jobs: {
-            id: string;
-            title: string;
-            company: string;
-            city: string;
-            remote: boolean;
-        }[];
-        events: {
-            id: string;
-            title: string;
-            startDate: Date;
-            mode: import(".prisma/client").$Enums.EventMode;
-            organizer: string;
-        }[];
-        connections: {
-            id: string;
-            name: string;
-            headline: string;
-        }[];
+        jobs: any;
+        events: any;
+        connections: any;
     }>;
 }
 //# sourceMappingURL=dashboard.service.d.ts.map

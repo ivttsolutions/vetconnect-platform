@@ -90,6 +90,24 @@ class MessagesController {
             (0, response_util_1.sendError)(res, error.message, 400);
         }
     }
+    async getOrCreateConversation(req, res) {
+        try {
+            const userId = req.user.userId;
+            const { userId: otherUserId } = req.body;
+            console.log('[getOrCreateConversation] Request body:', req.body);
+            console.log('[getOrCreateConversation] userId:', userId, 'otherUserId:', otherUserId);
+            if (!otherUserId) {
+                (0, response_util_1.sendError)(res, 'Se requiere el ID del usuario', 400);
+                return;
+            }
+            const conversation = await messagesService.getOrCreateConversation(userId, otherUserId);
+            (0, response_util_1.sendSuccess)(res, conversation, 'Conversación obtenida');
+        }
+        catch (error) {
+            console.error('[getOrCreateConversation] Error:', error);
+            (0, response_util_1.sendError)(res, error.message || 'Error al obtener conversación', 400);
+        }
+    }
 }
 exports.MessagesController = MessagesController;
 //# sourceMappingURL=messages.controller.js.map

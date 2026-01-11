@@ -7,5 +7,6 @@ export declare class MessagesController {
     startConversation(req: AuthRequest, res: Response): Promise<void>;
     getUnreadCount(req: AuthRequest, res: Response): Promise<void>;
     markAsRead(req: AuthRequest, res: Response): Promise<void>;
+    getOrCreateConversation(req: AuthRequest, res: Response): Promise<void>;
 }
 //# sourceMappingURL=messages.controller.d.ts.map
