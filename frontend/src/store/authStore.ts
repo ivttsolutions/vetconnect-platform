@@ -61,6 +61,13 @@ export const useAuthStore = create<AuthState>()(
       onRehydrateStorage: () => (state) => {
         // Called when zustand finishes loading from localStorage
         if (state) {
+          // Sync tokens to localStorage for axios interceptor
+          if (state.accessToken) {
+            localStorage.setItem('accessToken', state.accessToken);
+          }
+          if (state.refreshToken) {
+            localStorage.setItem('refreshToken', state.refreshToken);
+          }
           state.setHydrated(true);
         }
       },
